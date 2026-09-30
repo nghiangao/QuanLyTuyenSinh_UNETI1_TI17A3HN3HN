@@ -1,0 +1,35 @@
+## [Visual Studio / .NET Core]
+# Thư mục chứa file build và biên dịch (Bắt buộc phải bỏ qua)
+[Bb]in/
+[Oo]bj/
+
+# Thư mục cấu hình và cache của Visual Studio / VS Code
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Thư mục chứa các thư viện tải về (NuGet)
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# File log và báo cáo crash
+*.log
+*.log.*
+_ReSharper*/
+
+# File cấu hình chứa thông tin bảo mật (Chuỗi kết nối DB, API Key...)
+# Hãy giữ lại appsettings.json làm mẫu, nhưng chặn file chứa thông tin thật
+appsettings.Development.json
+appsettings.Local.json
+
+# Hệ điều hành tự sinh
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
