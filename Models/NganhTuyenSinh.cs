@@ -9,71 +9,75 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
 {
-    public class NganhTuyenSinh
-{
-    [Key]
-    [Required(ErrorMessage = "Mã ngành là bắt buộc nhập.")]
-    [StringLength(50, ErrorMessage = "Mã ngành không được vượt quá 50 ký tự.")]
-    [Display(Name = "Mã ngành")]
-    public string MaNganh { get; set; } 
+    // Bổ sung IValidatableObject để hỗ trợ hàm Validate kiểm tra ngày tháng
+    public class NganhTuyenSinh : IValidatableObject
+    {
+        [Key]
+        public int MaNganh { get; set; }
 
-    [Required(ErrorMessage = "Tên ngành tuyển sinh là bắt buộc nhập.")]
-    [StringLength(200, ErrorMessage = "Tên ngành không được vượt quá 200 ký tự.")]
-    [Display(Name = "Tên ngành tuyển sinh")]
-    public string TenNganh { get; set; }
+        [Required(ErrorMessage = "Tên ngành là bắt buộc")]
+        [StringLength(150)]
+        [Display(Name = "Tên ngành")]
+        public string TenNganh { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng chọn khoa.")]
-    [Display(Name = "Khoa")]
-    public int MaKhoa { get; set; } // Giả sử bảng Khoa vẫn dùng MaKhoa kiểu int
+        [Display(Name = "Khoa")]
+        public int MaKhoa { get; set; }
+        public Khoa? Khoa { get; set; }
 
-    [Required(ErrorMessage = "Chỉ tiêu là bắt buộc nhập.")]
-    [Range(1, int.MaxValue, ErrorMessage = "Chỉ tiêu phải lớn hơn 0.")]
-    [Display(Name = "Chỉ tiêu")]
-    public int ChiTieu { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Chỉ tiêu phải lớn hơn 0")]
+        [Display(Name = "Chỉ tiêu")]
+        public int ChiTieu { get; set; }
 
-    [Required(ErrorMessage = "Tổ hợp xét tuyển là bắt buộc nhập (VD: A00, A01...).")]
-    [StringLength(50)]
-    [Display(Name = "Tổ hợp xét tuyển")]
-    public string ToHopXetTuyen { get; set; }
+        [Required(ErrorMessage = "Tổ hợp xét tuyển là bắt buộc")]   
+        [StringLength(100)]
+        [Display(Name = "Tổ hợp xét tuyển")]
+        public string ToHopXetTuyen { get; set; } = string.Empty;   // ví dụ: "A00, A01, D01"
 
-    [Required(ErrorMessage = "Điểm xét tuyển tối thiểu là bắt buộc nhập.")]
-    [Range(0, 30, ErrorMessage = "Điểm xét tuyển tối thiểu phải nằm trong khoảng từ 0 đến 30.")]
-    [Display(Name = "Điểm xét tuyển tối thiểu")]
-    public double DiemXetTuyenToiThieu { get; set; }
+        [Range(0, 30, ErrorMessage = "Điểm xét tuyển tối thiểu từ 0 đến 30")]
+        [Display(Name = "Điểm xét tuyển tối thiểu")]
+        public decimal DiemXetTuyenToiThieu { get; set; }
 
-    [Required(ErrorMessage = "Ngày bắt đầu nhận hồ sơ là bắt buộc.")]
-    [DataType(DataType.Date)]
-    [Display(Name = "Ngày bắt đầu nhận hồ sơ")]
-    public DateTime NgayBatDauNhanHoSo { get; set; }
+        [DataType(DataType.Date)]
+        [Display(Name = "Ngày bắt đầu nhận hồ sơ")]
+        public DateTime NgayBatDauNhanHoSo { get; set; } = DateTime.Today;
 
-    [Required(ErrorMessage = "Hạn nộp hồ sơ là bắt buộc.")]
-    [DataType(DataType.Date)]
-    [Display(Name = "Hạn nộp hồ sơ")]
-    public DateTime HanNopHoSo { get; set; }
+        [DataType(DataType.Date)]
+        [Display(Name = "Hạn nộp hồ sơ")]
+        public DateTime HanNopHoSo { get; set; } = DateTime.Today.AddMonths(1);
 
-    [DataType(DataType.MultilineText)]
-    [Display(Name = "Mô tả ngành")]
-    public string MoTaNganh { get; set; }
+        [StringLength(2000)]
+        [Display(Name = "Mô tả ngành")]
+        public string? MoTaNganh { get; set; }
 
-    [DataType(DataType.MultilineText)]
-    [Display(Name = "Yêu cầu thí sinh")]
-    public string YeuCauThiSinh { get; set; }
+        [StringLength(2000)]
+        [Display(Name = "Yêu cầu thí sinh")]
+        public string? YeuCauThiSinh { get; set; }
 
-    [Required(ErrorMessage = "Trạng thái là bắt buộc.")]
-    [StringLength(50)]
-    [Display(Name = "Trạng thái")]
-    // Trạng thái gồm: Chưa mở, Đang tuyển, Tạm dừng, Đã đóng
-    public string TrangThai { get; set; }
+        [Required]
+        [StringLength(20)]
+        [Display(Name = "Trạng thái")]
+        public string TrangThai { get; set; } = TrangThaiNganh.ChuaMo;
 
-    // ==========================================
-    // NAVIGATION PROPERTIES (LIÊN KẾT KHÓA NGOẠI)
-    // ==========================================
+        public ICollection<HoSoXetTuyen> HoSoXetTuyens { get; set; } = new List<HoSoXetTuyen>();
 
-    // Liên kết N-1 với Entity Khoa
-    [ForeignKey("MaKhoa")]
-    public virtual Khoa Khoa { get; set; }
+        // Kiểm tra liên trường (hạn nộp >= ngày bắt đầu)
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (HanNopHoSo.Date < NgayBatDauNhanHoSo.Date)
+                yield return new ValidationResult(
+                    "Hạn nộp hồ sơ phải sau hoặc bằng ngày bắt đầu nhận hồ sơ",
+                    new[] { nameof(HanNopHoSo) });
+        }
 
-    // Liên kết 1-N với Entity HoSoXetTuyen
-    public virtual ICollection<HoSoXetTuyen> HoSoXetTuyens { get; set; }
-}
+        // CHỈ dùng trong View/C#. KHÔNG dùng trong truy vấn LINQ to EF (thuộc tính NotMapped
+        // không dịch được sang SQL) - trong truy vấn hãy viết điều kiện đầy đủ.
+        [NotMapped]
+        public bool DangNhanHoSo =>
+            TrangThai == TrangThaiNganh.DangTuyen
+            && DateTime.Today >= NgayBatDauNhanHoSo.Date
+            && DateTime.Today <= HanNopHoSo.Date;
+
+        [NotMapped]
+        public bool HetHan => DateTime.Today > HanNopHoSo.Date;
+    }
 }
