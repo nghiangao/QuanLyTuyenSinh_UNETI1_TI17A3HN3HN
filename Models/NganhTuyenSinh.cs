@@ -1,3 +1,7 @@
+﻿// Họ và tên: Đào Văn Khánh
+// Mã sinh viên: 23103100125
+// Nội dung thực hiện: Quản lý ngành tuyển sinh, Tìm kiếm, Lọc, Sắp xếp và Phân trang.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -5,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
 {
+    // Bổ sung IValidatableObject để hỗ trợ hàm Validate kiểm tra ngày tháng
     public class NganhTuyenSinh : IValidatableObject
     {
         [Key]
@@ -23,7 +28,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
         [Display(Name = "Chỉ tiêu")]
         public int ChiTieu { get; set; }
 
-        [Required(ErrorMessage = "Tổ hợp xét tuyển là bắt buộc")]
+        [Required(ErrorMessage = "Tổ hợp xét tuyển là bắt buộc")]   
         [StringLength(100)]
         [Display(Name = "Tổ hợp xét tuyển")]
         public string ToHopXetTuyen { get; set; } = string.Empty;   // ví dụ: "A00, A01, D01"
