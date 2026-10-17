@@ -1,3 +1,7 @@
+// Họ và tên: Mã Đức Thịnh
+// Mã sinh viên: 23103100314
+// Nội dung thực hiện: Module 5 - Entity LichPhongVan, kiểm tra thời gian
+// kết thúc phải sau thời gian bắt đầu.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
