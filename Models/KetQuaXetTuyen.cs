@@ -1,3 +1,7 @@
+// Họ và tên: Mã Đức Thịnh
+// Mã sinh viên: 23103100314
+// Nội dung thực hiện: Module 5 - Entity KetQuaXetTuyen, kiểm tra điểm
+// đánh giá trong khoảng 0-100.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
