@@ -1,6 +1,7 @@
-//
-
-
+// Họ và tên: Giang Mạnh Tường
+// Mã sinh viên: 23103100155
+// Nội dung thực hiện: Module 3 - Entity HoSoXetTuyen, ThiSinh
+// đánh giá trong khoảng 0-100.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
