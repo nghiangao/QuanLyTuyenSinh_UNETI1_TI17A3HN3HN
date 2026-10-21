@@ -1,3 +1,8 @@
+// Họ và tên: Đinh Văn Thành
+// Mã sinh viên: 23103100180
+// Nội dung thực hiện: Tài Khoản, Đăng Nhập, Phân Quyền, Quản Lý Khoa.
+
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
