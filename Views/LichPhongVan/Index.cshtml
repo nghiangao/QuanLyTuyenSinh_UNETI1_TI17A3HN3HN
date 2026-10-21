@@ -1,0 +1,94 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 - Giao diện danh sách lịch phỏng vấn, lọc theo trạng thái,
+    nút Hoàn thành / Hủy hiển thị theo trạng thái của lịch.
+*@
+@model IEnumerable<LichPhongVan>
+
+@{
+    ViewData["Title"] = "Lịch phỏng vấn";
+    string? trangThaiDangLoc = ViewBag.TrangThai as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Lịch phỏng vấn</h2>
+    <a asp-action="Create" class="btn btn-primary">+ Lập lịch phỏng vấn</a>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success">@TempData["ThongBao"]</div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert alert-danger">@TempData["Loi"]</div>
+}
+
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="trangThai" class="form-select">
+            <option value="">-- Tất cả trạng thái --</option>
+            @foreach (var tt in new[] { TrangThaiLich.DaLenLich, TrangThaiLich.DaHoanThanh, TrangThaiLich.DaHuy })
+            {
+                <option value="@tt" selected="@(tt == trangThaiDangLoc)">@tt</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Lọc</button>
+    </div>
+</form>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Thí sinh</th>
+            <th>Ngành</th>
+            <th>Bắt đầu</th>
+            <th>Kết thúc</th>
+            <th>Hình thức</th>
+            <th>Địa điểm / Liên kết</th>
+            <th>Người phỏng vấn</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        var badge = item.TrangThai == TrangThaiLich.DaLenLich ? "bg-primary"
+                  : item.TrangThai == TrangThaiLich.DaHoanThanh ? "bg-success"
+                  : "bg-secondary";
+        <tr>
+            <td>@item.HoSoXetTuyen?.ThiSinh?.HoTen</td>
+            <td>@item.HoSoXetTuyen?.NganhTuyenSinh?.TenNganh</td>
+            <td>@item.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>@item.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>@item.HinhThucPhongVan</td>
+            <td>@item.DiaDiemHoacLienKet</td>
+            <td>@item.NguoiPhongVan?.HoTen</td>
+            <td><span class="badge @badge">@item.TrangThai</span></td>
+            <td class="text-nowrap">
+                @* Chỉ lịch "Đã lên lịch" mới có nút thao tác (đề mục 14) *@
+                @if (item.TrangThai == TrangThaiLich.DaLenLich)
+                {
+                    <form asp-action="HoanThanh" asp-route-id="@item.MaLichPhongVan" method="post" class="d-inline"
+                          onsubmit="return confirm('Xác nhận đã phỏng vấn xong?');">
+                        <button type="submit" class="btn btn-sm btn-success">Hoàn thành</button>
+                    </form>
+                    <form asp-action="Huy" asp-route-id="@item.MaLichPhongVan" method="post" class="d-inline"
+                          onsubmit="return confirm('Bạn có chắc muốn hủy lịch này?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">Chưa có lịch phỏng vấn nào.</p>
+}
