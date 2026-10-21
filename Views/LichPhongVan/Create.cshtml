@@ -1,0 +1,80 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 - Form lập lịch phỏng vấn (chọn hồ sơ Đạt sơ tuyển,
+    người phỏng vấn, thời gian bằng datetime-local, hiển thị lỗi kiểm tra nghiệp vụ).
+*@
+@model LichPhongVan
+
+@{
+    ViewData["Title"] = "Lập lịch phỏng vấn";
+}
+
+<h2>Lập lịch phỏng vấn</h2>
+
+<div class="row">
+    <div class="col-md-7">
+        <form asp-action="Create" method="post">
+            @* Lỗi chung (ví dụ trùng lịch) hiện ở đây; lỗi từng ô hiện ngay dưới ô đó *@
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="MaHoSo" class="form-label">Hồ sơ (chỉ hồ sơ Đạt sơ tuyển)</label>
+                <select asp-for="MaHoSo" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsHoSo" class="form-select">
+                    <option value="">-- Chọn hồ sơ --</option>
+                </select>
+                <span asp-validation-for="MaHoSo" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ThoiGianBatDau" class="form-label"></label>
+                    <input asp-for="ThoiGianBatDau" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="ThoiGianBatDau" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ThoiGianKetThuc" class="form-label"></label>
+                    <input asp-for="ThoiGianKetThuc" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="ThoiGianKetThuc" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="HinhThucPhongVan" class="form-label"></label>
+                <select asp-for="HinhThucPhongVan" class="form-select">
+                    <option value="Trực tiếp">Trực tiếp</option>
+                    <option value="Trực tuyến">Trực tuyến</option>
+                </select>
+                <span asp-validation-for="HinhThucPhongVan" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DiaDiemHoacLienKet" class="form-label"></label>
+                <input asp-for="DiaDiemHoacLienKet" class="form-control"
+                       placeholder="Phòng phỏng vấn hoặc đường dẫn họp trực tuyến" />
+                <span asp-validation-for="DiaDiemHoacLienKet" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MaNguoiPhongVan" class="form-label"></label>
+                <select asp-for="MaNguoiPhongVan" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsNguoiPhongVan" class="form-select">
+                    <option value="">-- Chọn người phỏng vấn --</option>
+                </select>
+                <span asp-validation-for="MaNguoiPhongVan" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GhiChu" class="form-label"></label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="GhiChu" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Lưu lịch</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
