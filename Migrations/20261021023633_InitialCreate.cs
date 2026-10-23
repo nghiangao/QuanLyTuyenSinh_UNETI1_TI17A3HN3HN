@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Họ và tên: Nguyễn Đức Nghĩa
+// Mã sinh viên: 23103100307
+// Nội dung thực hiện: Tạo Migration
+
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable

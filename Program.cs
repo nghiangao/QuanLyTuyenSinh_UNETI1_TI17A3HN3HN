@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data;
+using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Repositories;
+using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<TuyenSinhDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Đăng ký tầng Repositories & Services theo kiến trúc N-Tier
+builder.Services.AddScoped<IHoSoXetTuyenRepository, HoSoXetTuyenRepository>();
+builder.Services.AddScoped<IHoSoTrangThaiService, HoSoTrangThaiService>();
 
 // Cấu hình Session
 builder.Services.AddDistributedMemoryCache();
