@@ -1,0 +1,46 @@
+// Họ và tên: Đinh Văn Thành
+// Mã sinh viên: 23103100180
+// Nội dung thực hiện: Tài Khoản, Đăng Nhập, Phân Quyền, Quản Lý Khoa.
+
+
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.DangNhapViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <h1 class="mb-4">Đã đăng nhập</h1>
+            <p>Xin chào, @User.Identity.Name.</p>
+            <form asp-action="DangXuat" method="post">
+                <button type="submit" class="btn btn-outline-primary">Đăng xuất</button>
+            </form>
+        }
+        else
+        {
+            <h1 class="mb-4">Đăng nhập</h1>
+            <form asp-action="DangNhap" method="post">
+                <input asp-for="ReturnUrl" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="mb-3">
+                    <label asp-for="TenDangNhap" class="form-label"></label>
+                    <input asp-for="TenDangNhap" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="MatKhau" class="form-label"></label>
+                    <input asp-for="MatKhau" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="MatKhau" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Đăng nhập</button>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

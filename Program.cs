@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data;
 using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Repositories;
 using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Services;
@@ -7,6 +8,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Cookie authentication supplies the authenticated role principal consumed by [Authorize].
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/TaiKhoan/DangNhap";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+    });
+builder.Services.AddAuthorization();
 
 // Cấu hình Database SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -57,6 +74,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseSession();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
