@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - QuanLyTuyenSinh_UNETI1_TI17A3HN3HN</title>
+    <title>@ViewData["Title"] - Quản Lý Tuyển Sinh UNETI</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -11,9 +11,11 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">QuanLyTuyenSinh_UNETI1_TI17A3HN3HN</a>
+                <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
+                    🎓 Tuyển Sinh UNETI
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -21,25 +23,49 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="NganhTuyenSinh" asp-action="Index">Ngành tuyển sinh</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Khoa" asp-action="Index">Khoa</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-primary fw-semibold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                📅 Module 5 (Lịch & Kết quả)
+                            </a>
+                            <ul class="dropdown-menu shadow">
+                                <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Index">📋 Danh sách lịch phỏng vấn</a></li>
+                                <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Create">➕ Lập lịch phỏng vấn</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Dashboard">📊 Dashboard 9 chỉ số</a></li>
+                                <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="ThongKe">📈 Báo cáo thống kê LINQ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="LichCuaToi">🔍 Thí sinh xem lịch & kết quả (M5.4)</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-primary btn-sm px-3" asp-controller="LichPhongVan" asp-action="LichCuaToi">
+                                🔍 Tra cứu kết quả
+                            </a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container-fluid px-4">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - QuanLyTuyenSinh_UNETI1_TI17A3HN3HN - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top footer text-muted bg-white py-3 mt-5">
+        <div class="container-fluid px-4 text-center">
+            &copy; 2026 - Nhóm 01 - Lớp TI17A3HN - Đề tài 21: Quản lý tuyển sinh và hồ sơ xét tuyển
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

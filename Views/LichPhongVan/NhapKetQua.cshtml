@@ -1,0 +1,92 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 – Form nhập / sửa kết quả phỏng vấn.
+    Sau khi lưu, hồ sơ [Module 3/6] tự động chuyển Trúng tuyển / Không trúng tuyển.
+*@
+@model KetQuaXetTuyen
+
+@{
+    ViewData["Title"] = "Nhập kết quả phỏng vấn";
+    var lich  = ViewBag.ThongTinLich  as LichPhongVan;
+    var hoSo  = lich?.HoSoXetTuyen;
+    int maLich = (int)ViewBag.MaLichPhongVan;
+}
+
+<h2>Nhập kết quả phỏng vấn</h2>
+
+@* ── Tóm tắt thông tin lịch (readonly, chỉ để đối chiếu) ── *@
+@if (lich != null)
+{
+    <div class="card mb-4">
+        <div class="card-header">Thông tin lịch #@lich.MaLichPhongVan</div>
+        <div class="card-body py-2">
+            <div class="row row-cols-auto g-3">
+                <div class="col">
+                    <small class="text-muted">Thí sinh</small><br />
+                    <strong>@hoSo?.ThiSinh?.HoTen</strong>
+                </div>
+                <div class="col">
+                    <small class="text-muted">Ngành</small><br />     @* [Module 2] *@
+                    <strong>@hoSo?.NganhTuyenSinh?.TenNganh</strong>
+                </div>
+                <div class="col">
+                    <small class="text-muted">Thời gian</small><br />
+                    <strong>@lich.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                <div class="col">
+                    <small class="text-muted">Người phỏng vấn</small><br />
+                    <strong>@lich.NguoiPhongVan?.HoTen</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="NhapKetQua" asp-route-id="@maLich" method="post">
+            @Html.AntiForgeryToken()
+
+            @* Hidden fields để giữ khóa chính khi sửa *@
+            <input type="hidden" asp-for="MaKetQuaXetTuyen" />
+            <input type="hidden" asp-for="MaHoSo" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="KetQua" class="form-label fw-semibold"></label>
+                <select asp-for="KetQua" class="form-select">
+                    <option value="@KetQuaTuyen.TrungTuyen">@KetQuaTuyen.TrungTuyen</option>
+                    <option value="@KetQuaTuyen.KhongTrungTuyen">@KetQuaTuyen.KhongTrungTuyen</option>
+                </select>
+                <span asp-validation-for="KetQua" class="text-danger"></span>
+                <div class="form-text">
+                    Sau khi lưu, trạng thái hồ sơ sẽ tự động chuyển theo kết quả này.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DiemDanhGia" class="form-label"></label>
+                <input asp-for="DiemDanhGia" type="number" step="0.01" min="0" max="100"
+                       class="form-control" placeholder="0 – 100 (không bắt buộc)" />
+                <span asp-validation-for="DiemDanhGia" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="NhanXet" class="form-label"></label>
+                <textarea asp-for="NhanXet" class="form-control" rows="4"
+                          placeholder="Nhận xét năng lực, kỹ năng, thái độ…"></textarea>
+                <span asp-validation-for="NhanXet" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">💾 Lưu kết quả</button>
+            <a asp-action="Details" asp-route-id="@maLich" class="btn btn-outline-secondary">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+

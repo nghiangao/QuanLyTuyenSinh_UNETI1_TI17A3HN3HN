@@ -1,0 +1,173 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 - Giao diện thí sinh xem lịch phỏng vấn & kết quả xét tuyển của chính mình (M5.4).
+*@
+@model TraCuuThiSinhViewModel
+
+@{
+    ViewData["Title"] = "Lịch phỏng vấn & Kết quả của tôi";
+}
+
+<div class="mb-4">
+    <h2 class="text-primary fw-bold mb-1">🔍 Tra Cứu Lịch Phỏng Vấn & Kết Quả</h2>
+    <p class="text-muted">Theo dõi lịch phỏng vấn và kết quả xét tuyển cá nhân (Dành cho thí sinh - Task M5.4)</p>
+</div>
+
+@* Thanh tra cứu nếu thí sinh chưa đăng nhập *@
+@if (Model.ThongTinThiSinh == null)
+{
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Nhập thông tin tra cứu hồ sơ</h5>
+            <form asp-action="LichCuaToi" method="get" class="row g-2">
+                <div class="col-md-8">
+                    <input type="text" name="tuKhoa" class="form-control form-control-lg"
+                           placeholder="Nhập số điện thoại hoặc email đã đăng ký..." value="@Model.TuKhoaTraCuu" required />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">🔎 Tra cứu ngay</button>
+                </div>
+            </form>
+            @if (ViewBag.ThongBaoLoi != null)
+            {
+                <div class="alert alert-danger mt-3 mb-0">@ViewBag.ThongBaoLoi</div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    @* Thẻ thông tin thí sinh *@
+    <div class="card shadow-sm border-0 mb-4 border-start border-primary border-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="fw-bold mb-0 text-primary">👤 @Model.ThongTinThiSinh.HoTen</h4>
+                <span class="badge bg-success">Thí sinh</span>
+            </div>
+            <div class="row row-cols-1 row-cols-md-3 g-2 text-muted small mt-1">
+                <div><strong>Mã thí sinh:</strong> #@Model.ThongTinThiSinh.MaThiSinh</div>
+                <div><strong>Số điện thoại:</strong> @Model.ThongTinThiSinh.SoDienThoai</div>
+                <div><strong>Email:</strong> @Model.ThongTinThiSinh.Email</div>
+                <div><strong>Trường THPT:</strong> @Model.ThongTinThiSinh.TruongTHPT</div>
+                <div><strong>Tổ hợp xét tuyển:</strong> @Model.ThongTinThiSinh.ToHopXetTuyen</div>
+                <div><strong>Điểm thi THPT:</strong> @Model.ThongTinThiSinh.DiemThiTHPT</div>
+            </div>
+        </div>
+    </div>
+
+    @* Danh sách các hồ sơ và lịch phỏng vấn của thí sinh *@
+    <h4 class="fw-bold mb-3">📋 Danh sách nguyện vọng & Lịch phỏng vấn</h4>
+
+    @if (!Model.DanhSachHoSo.Any())
+    {
+        <div class="alert alert-info">Bạn chưa nộp hồ sơ xét tuyển nào vào hệ thống.</div>
+    }
+    else
+    {
+        @foreach (var hs in Model.DanhSachHoSo)
+        {
+            var badgeTrangThai = hs.TrangThai == TrangThaiHoSo.TrungTuyen ? "bg-success"
+                               : hs.TrangThai == TrangThaiHoSo.KhongTrungTuyen ? "bg-danger"
+                               : hs.TrangThai == TrangThaiHoSo.ChoPhongVan ? "bg-info text-dark"
+                               : hs.TrangThai == TrangThaiHoSo.DaPhongVan ? "bg-primary"
+                               : hs.TrangThai == TrangThaiHoSo.DatSoTuyen ? "bg-warning text-dark"
+                               : "bg-secondary";
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">
+                            Ngành: @hs.NganhTuyenSinh?.TenNganh
+                            <small class="text-muted fs-6">(@hs.NganhTuyenSinh?.Khoa?.TenKhoa)</small>
+                        </h5>
+                        <div class="small text-muted mt-1">Mã hồ sơ: #@hs.MaHoSo | Ngày nộp: @hs.NgayNop.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div>
+                        <span class="badge @badgeTrangThai fs-6 px-3 py-2">@hs.TrangThai</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        @* Cột 1: Thông tin Lịch phỏng vấn *@
+                        <div class="col-md-7 border-end">
+                            <h6 class="fw-bold text-primary mb-3">📅 Lịch phỏng vấn</h6>
+                            @if (!hs.LichPhongVans.Any())
+                            {
+                                <p class="text-muted mb-0">Chưa có lịch phỏng vấn nào được xếp cho hồ sơ này.</p>
+                            }
+                            else
+                            {
+                                @foreach (var lich in hs.LichPhongVans.OrderByDescending(l => l.ThoiGianBatDau))
+                                {
+                                    var badgeLich = lich.TrangThai == TrangThaiLich.DaLenLich ? "bg-primary"
+                                                  : lich.TrangThai == TrangThaiLich.DaHoanThanh ? "bg-success"
+                                                  : "bg-secondary";
+
+                                    <div class="border rounded p-3 mb-2 bg-light">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>Thời gian: @lich.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm") - @lich.ThoiGianKetThuc.ToString("HH:mm")</strong>
+                                            <span class="badge @badgeLich">@lich.TrangThai</span>
+                                        </div>
+                                        <div class="small mb-1"><strong>Hình thức:</strong> @lich.HinhThucPhongVan</div>
+                                        <div class="small mb-1">
+                                            <strong>Địa điểm / Đường link:</strong>
+                                            @if (lich.HinhThucPhongVan == "Trực tuyến" && lich.DiaDiemHoacLienKet != null && lich.DiaDiemHoacLienKet.StartsWith("http"))
+                                            {
+                                                <a href="@lich.DiaDiemHoacLienKet" target="_blank" class="text-primary fw-bold">👉 Bấm vào đây để tham gia phỏng vấn</a>
+                                            }
+                                            else
+                                            {
+                                                <span>@lich.DiaDiemHoacLienKet</span>
+                                            }
+                                        </div>
+                                        <div class="small mb-1"><strong>Người phỏng vấn:</strong> @lich.NguoiPhongVan?.HoTen</div>
+                                        @if (!string.IsNullOrWhiteSpace(lich.GhiChu))
+                                        {
+                                            <div class="small text-muted fst-italic">Ghi chú: @lich.GhiChu</div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        @* Cột 2: Kết quả xét tuyển *@
+                        <div class="col-md-5">
+                            <h6 class="fw-bold text-success mb-3">🏆 Kết quả xét tuyển</h6>
+                            @if (hs.KetQuaXetTuyen == null)
+                            {
+                                <p class="text-muted mb-0">Hồ sơ đang trong quá trình xét duyệt, chưa có kết quả cuối cùng.</p>
+                            }
+                            else
+                            {
+                                var kq = hs.KetQuaXetTuyen;
+                                var isPass = kq.KetQua == KetQuaTuyen.TrungTuyen;
+
+                                <div class="p-3 rounded border text-center @(isPass ? "bg-success bg-opacity-10 border-success" : "bg-danger bg-opacity-10 border-danger")">
+                                    <h4 class="fw-bold @(isPass ? "text-success" : "text-danger") mb-1">@kq.KetQua</h4>
+                                    <div class="small text-muted mb-2">Cập nhật ngày: @kq.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</div>
+
+                                    @if (kq.DiemDanhGia.HasValue)
+                                    {
+                                        <div class="display-6 fw-bold my-2 @(isPass ? "text-success" : "text-danger")">
+                                            @kq.DiemDanhGia.Value.ToString("0.##") <span class="fs-6 text-muted">/ 100 điểm</span>
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(kq.NhanXet))
+                                    {
+                                        <div class="border-top pt-2 mt-2 text-start small text-dark">
+                                            <strong>Nhận xét từ hội đồng:</strong>
+                                            <p class="mb-0 mt-1 fst-italic">"@kq.NhanXet"</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+

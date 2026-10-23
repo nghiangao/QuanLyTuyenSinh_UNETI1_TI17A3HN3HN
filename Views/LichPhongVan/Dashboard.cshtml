@@ -1,0 +1,202 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 - Giao diện Dashboard 9 chỉ số tổng quan tuyển sinh (Đề mục 9.5).
+*@
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard Tuyển Sinh";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-primary fw-bold">📊 Dashboard Tuyển Sinh</h2>
+        <p class="text-muted mb-0">Hệ thống giám sát và tổng hợp 9 chỉ số tuyển sinh theo thời gian thực</p>
+    </div>
+    <div>
+        <a asp-action="ThongKe" class="btn btn-outline-primary me-2">📈 Xem báo cáo thống kê</a>
+        <a asp-action="Index" class="btn btn-primary">📅 Quản lý lịch phỏng vấn</a>
+    </div>
+</div>
+
+@* =========================================================================
+   9 CHỈ SỐ DASHBOARD TỔNG QUAN (Đề mục 9.5)
+   ========================================================================= *@
+<div class="row g-3 mb-4">
+    @* 1. Tổng số khoa *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">1. Tổng số khoa</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoKhoa</div>
+                    </div>
+                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle fs-3">🏛️</div>
+                </div>
+                <div class="small text-muted mt-2">Dữ liệu đơn vị đào tạo</div>
+            </div>
+        </div>
+    </div>
+
+    @* 2. Tổng số ngành *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">2. Tổng số ngành tuyển sinh</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoNganh</div>
+                    </div>
+                    <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle fs-3">🎓</div>
+                </div>
+                <div class="small text-muted mt-2">Toàn bộ các ngành mở tuyển sinh</div>
+            </div>
+        </div>
+    </div>
+
+    @* 3. Số ngành đang tuyển *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">3. Ngành đang tuyển</div>
+                        <div class="fs-2 fw-bold text-success mt-1">@Model.SoNganhDangTuyen</div>
+                    </div>
+                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-3">🟢</div>
+                </div>
+                <div class="small text-muted mt-2">Đang nhận hồ sơ trực tuyến</div>
+            </div>
+        </div>
+    </div>
+
+    @* 4. Tổng số thí sinh *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-secondary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">4. Tổng số thí sinh</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoThiSinh</div>
+                    </div>
+                    <div class="p-3 bg-secondary bg-opacity-10 text-secondary rounded-circle fs-3">👥</div>
+                </div>
+                <div class="small text-muted mt-2">Thí sinh đã tạo hồ sơ cá nhân</div>
+            </div>
+        </div>
+    </div>
+
+    @* 5. Tổng số hồ sơ *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-dark border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">5. Tổng số hồ sơ</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoHoSo</div>
+                    </div>
+                    <div class="p-3 bg-dark bg-opacity-10 text-dark rounded-circle fs-3">📁</div>
+                </div>
+                <div class="small text-muted mt-2">Tổng số nguyện vọng đã nộp</div>
+            </div>
+        </div>
+    </div>
+
+    @* 6. Số hồ sơ chờ duyệt *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">6. Hồ sơ chờ duyệt</div>
+                        <div class="fs-2 fw-bold text-warning mt-1">@Model.SoHoSoChoDuyet</div>
+                    </div>
+                    <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle fs-3">⏳</div>
+                </div>
+                <div class="small text-muted mt-2">Cần cán bộ tuyển sinh sơ tuyển</div>
+            </div>
+        </div>
+    </div>
+
+    @* 7. Số hồ sơ đạt sơ tuyển *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">7. Hồ sơ đạt sơ tuyển</div>
+                        <div class="fs-2 fw-bold text-primary mt-1">@Model.SoHoSoDatSoTuyen</div>
+                    </div>
+                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle fs-3">📝</div>
+                </div>
+                <div class="small text-muted mt-2">Đủ điều kiện để lập lịch phỏng vấn</div>
+            </div>
+        </div>
+    </div>
+
+    @* 8. Lịch phỏng vấn sắp tới *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">8. Lịch phỏng vấn sắp tới</div>
+                        <div class="fs-2 fw-bold text-info mt-1">@Model.SoLichPhongVanSapToi</div>
+                    </div>
+                    <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle fs-3">⏰</div>
+                </div>
+                <div class="small text-muted mt-2">Đã lên lịch, chưa diễn ra</div>
+            </div>
+        </div>
+    </div>
+
+    @* 9. Số hồ sơ trúng tuyển *@
+    <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">9. Hồ sơ trúng tuyển</div>
+                        <div class="fs-2 fw-bold text-success mt-1">@Model.SoHoSoTrungTuyen</div>
+                    </div>
+                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-3">🏆</div>
+                </div>
+                <div class="small text-muted mt-2">Đạt kết quả trúng tuyển chính thức</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Lối tắt chuyển trang nhanh *@
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white fw-bold">
+        🚀 Lối tắt điều hướng theo quy trình nghiệp vụ
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <a asp-action="Create" class="btn btn-outline-primary w-100 py-2">
+                    ➕ Lập lịch phỏng vấn mới
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-action="Index" asp-route-trangThai="@TrangThaiLich.DaLenLich" class="btn btn-outline-info w-100 py-2">
+                    📋 Lịch cần phỏng vấn
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-action="ThongKe" class="btn btn-outline-success w-100 py-2">
+                    📊 Báo cáo phân tích LINQ
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-action="LichCuaToi" class="btn btn-outline-secondary w-100 py-2">
+                    🔍 Màn tra cứu của thí sinh
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
