@@ -2,7 +2,8 @@
     Họ và tên: Mã Đức Thịnh
     Mã sinh viên: 23103100314
     Nội dung thực hiện: Module 5 - Giao diện danh sách lịch phỏng vấn, lọc theo trạng thái,
-    nút Hoàn thành / Hủy hiển thị theo trạng thái của lịch.
+    nút Chi tiết luôn hiển thị; nút Hoàn thành / Hủy chỉ hiện khi "Đã lên lịch";
+    nút Nhập kết quả hiện khi lịch hoàn thành và hồ sơ đang "Đã phỏng vấn".
 *@
 @model IEnumerable<LichPhongVan>
 
@@ -57,7 +58,7 @@
     <tbody>
     @foreach (var item in Model)
     {
-        var badge = item.TrangThai == TrangThaiLich.DaLenLich ? "bg-primary"
+        var badge = item.TrangThai == TrangThaiLich.DaLenLich   ? "bg-primary"
                   : item.TrangThai == TrangThaiLich.DaHoanThanh ? "bg-success"
                   : "bg-secondary";
         <tr>
@@ -70,7 +71,11 @@
             <td>@item.NguoiPhongVan?.HoTen</td>
             <td><span class="badge @badge">@item.TrangThai</span></td>
             <td class="text-nowrap">
-                @* Chỉ lịch "Đã lên lịch" mới có nút thao tác (đề mục 14) *@
+                @* Nút Chi tiết luôn hiển thị *@
+                <a asp-action="Details" asp-route-id="@item.MaLichPhongVan"
+                   class="btn btn-sm btn-outline-info">Chi tiết</a>
+
+                @* Chỉ lịch "Đã lên lịch" mới có nút Hoàn thành / Hủy (đề mục 14) *@
                 @if (item.TrangThai == TrangThaiLich.DaLenLich)
                 {
                     <form asp-action="HoanThanh" asp-route-id="@item.MaLichPhongVan" method="post" class="d-inline"
@@ -81,6 +86,14 @@
                           onsubmit="return confirm('Bạn có chắc muốn hủy lịch này?');">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
                     </form>
+                }
+
+                @* Lịch hoàn thành + hồ sơ "Đã phỏng vấn" → cho phép nhập kết quả *@
+                @if (item.TrangThai == TrangThaiLich.DaHoanThanh &&
+                     item.HoSoXetTuyen?.TrangThai == TrangThaiHoSo.DaPhongVan)
+                {
+                    <a asp-action="NhapKetQua" asp-route-id="@item.MaLichPhongVan"
+                       class="btn btn-sm btn-warning">Nhập kết quả</a>
                 }
             </td>
         </tr>

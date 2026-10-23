@@ -1,0 +1,354 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 - Giao diện Thống kê báo cáo bằng LINQ (Đề mục 9.6: 10 báo cáo phân tích chuyên sâu).
+*@
+@model ThongKeViewModel
+
+@{
+    ViewData["Title"] = "Thống kê Tuyển Sinh";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-primary fw-bold">📈 Báo Cáo & Thống Kê Tuyển Sinh</h2>
+        <p class="text-muted mb-0">Áp dụng LINQ trên EF Core 10: Count, Sum, GroupBy, OrderBy, OrderByDescending, Any</p>
+    </div>
+    <div>
+        <a asp-action="Dashboard" class="btn btn-outline-primary me-2">📊 Xem Dashboard</a>
+        <a asp-action="Index" class="btn btn-primary">📅 Danh sách lịch</a>
+    </div>
+</div>
+
+@* =========================================================================
+   5. NGÀNH NHẬN NHIỀU HỒ SƠ NHẤT (Highlight Card)
+   LINQ: OrderByDescending(Count).FirstOrDefaultAsync()
+   ========================================================================= *@
+@if (Model.NganhNhieuHoSoNhat != null)
+{
+    <div class="alert alert-primary shadow-sm border-0 d-flex align-items-center justify-content-between p-3 mb-4">
+        <div>
+            <span class="badge bg-danger me-2">Top 1 Hồ sơ</span>
+            <strong>Ngành tuyển sinh nhận nhiều hồ sơ nhất:</strong>
+            <span class="fs-5 text-dark fw-bold ms-2">@Model.NganhNhieuHoSoNhat.TenNganh</span>
+            <span class="text-muted small">(@Model.NganhNhieuHoSoNhat.TenKhoa)</span>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-primary fs-6">@Model.NganhNhieuHoSoNhat.SoLuongHoSo hồ sơ</span>
+            <span class="text-muted small ms-2">/ Chỉ tiêu: @Model.NganhNhieuHoSoNhat.ChiTieu</span>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    @* =========================================================================
+       1. Số ngành tuyển sinh theo khoa
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>1. Số ngành tuyển sinh theo khoa</span>
+                <span class="badge bg-light text-dark border">GroupBy(Khoa)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Khoa đào tạo</th>
+                            <th class="text-center">Số ngành</th>
+                            <th class="text-end">Tổng chỉ tiêu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.NganhTheoKhoa)
+                        {
+                            <tr>
+                                <td>@item.TenKhoa</td>
+                                <td class="text-center"><span class="badge bg-info text-dark">@item.SoLuongNganh</span></td>
+                                <td class="text-end fw-semibold">@item.TongChiTieu</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       2. Số hồ sơ theo từng ngành tuyển sinh
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>2. Số hồ sơ theo từng ngành</span>
+                <span class="badge bg-light text-dark border">Count(HoSo)</span>
+            </div>
+            <div class="card-body p-0" style="max-height: 350px; overflow-y: auto;">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Tên ngành</th>
+                            <th class="text-center">Chỉ tiêu</th>
+                            <th class="text-end">Số hồ sơ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.HoSoTheoNganh)
+                        {
+                            <tr>
+                                <td>@item.TenNganh</td>
+                                <td class="text-center text-muted">@item.ChiTieu</td>
+                                <td class="text-end"><span class="badge bg-primary">@item.SoLuongHoSo</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       3. Số hồ sơ theo trạng thái
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>3. Số hồ sơ theo trạng thái</span>
+                <span class="badge bg-light text-dark border">GroupBy(TrangThai)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Trạng thái hồ sơ</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Tỷ lệ (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.HoSoTheoTrangThai)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@item.TrangThai</span></td>
+                                <td class="text-center fw-bold">@item.SoLuong</td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 16px;">
+                                        <div class="progress-bar bg-success" style="width: @item.TyLePhanTram%;">@item.TyLePhanTram%</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       4. Số hồ sơ đạt sơ tuyển theo ngành
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>4. Đạt sơ tuyển theo ngành</span>
+                <span class="badge bg-light text-dark border">Where(DatSoTuyen)</span>
+            </div>
+            <div class="card-body p-0" style="max-height: 350px; overflow-y: auto;">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Tên ngành</th>
+                            <th class="text-end">Hồ sơ đạt sơ tuyển</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.DatSoTuyenTheoNganh)
+                        {
+                            <tr>
+                                <td>@item.TenNganh</td>
+                                <td class="text-end"><span class="badge bg-success">@item.SoHoSoDatSoTuyen</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       6. Số hồ sơ trúng tuyển theo khoa
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>6. Số hồ sơ trúng tuyển theo khoa</span>
+                <span class="badge bg-light text-dark border">Count(TrungTuyen)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Khoa đào tạo</th>
+                            <th class="text-end">Số trúng tuyển</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TrungTuyenTheoKhoa)
+                        {
+                            <tr>
+                                <td>@item.TenKhoa</td>
+                                <td class="text-end"><span class="badge bg-success fs-6">@item.SoLuongTrungTuyen</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       10. Tỷ lệ trúng tuyển trên số đã phỏng vấn
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>10. Tỷ lệ trúng tuyển sau phỏng vấn</span>
+                <span class="badge bg-light text-dark border">TrungTuyen / DaPV</span>
+            </div>
+            <div class="card-body text-center p-4">
+                <div class="display-4 fw-bold text-success mb-2">@Model.TyLeTrungTuyenTrenDaPV.TyLeTrungTuyenPhanTram%</div>
+                <p class="text-muted mb-3">Tỷ lệ trúng tuyển trên tổng số hồ sơ đã thực hiện phỏng vấn</p>
+                <div class="row g-2 justify-content-center">
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <div class="small text-muted">Đã phỏng vấn</div>
+                            <div class="fw-bold fs-5">@Model.TyLeTrungTuyenTrenDaPV.TongHoSoDaPhongVan</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <div class="small text-success">Trúng tuyển</div>
+                            <div class="fw-bold fs-5 text-success">@Model.TyLeTrungTuyenTrenDaPV.SoHoSoTrungTuyen</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2 bg-light">
+                            <div class="small text-danger">Không trúng</div>
+                            <div class="fw-bold fs-5 text-danger">@Model.TyLeTrungTuyenTrenDaPV.SoHoSoKhongTrungTuyen</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       7. Số hồ sơ nộp theo tháng & 8. Số lịch phỏng vấn theo tháng
+       ========================================================================= *@
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>7. Số hồ sơ nộp theo tháng</span>
+                <span class="badge bg-light text-dark border">GroupBy(NgayNop.Month)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Thời gian</th>
+                            <th class="text-end">Số lượng hồ sơ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.HoSoTheoThang.Any())
+                        {
+                            <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                        }
+                        @foreach (var item in Model.HoSoTheoThang)
+                        {
+                            <tr>
+                                <td>Tháng @item.Thang / @item.Nam</td>
+                                <td class="text-end fw-bold text-primary">@item.SoLuong</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>8. Số lịch phỏng vấn theo tháng</span>
+                <span class="badge bg-light text-dark border">GroupBy(BatDau.Month)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Thời gian</th>
+                            <th class="text-end">Số lịch phỏng vấn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.LichTheoThang.Any())
+                        {
+                            <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                        }
+                        @foreach (var item in Model.LichTheoThang)
+                        {
+                            <tr>
+                                <td>Tháng @item.Thang / @item.Nam</td>
+                                <td class="text-end fw-bold text-info">@item.SoLuong</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* =========================================================================
+       9. Tỷ lệ hồ sơ qua sơ tuyển theo từng ngành tuyển sinh
+       ========================================================================= *@
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between">
+                <span>9. Tỷ lệ hồ sơ qua sơ tuyển theo từng ngành tuyển sinh</span>
+                <span class="badge bg-light text-dark border">SoDatSoTuyen / TongHoSo (%)</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ngành tuyển sinh</th>
+                            <th class="text-center">Tổng hồ sơ nộp</th>
+                            <th class="text-center">Đạt sơ tuyển</th>
+                            <th>Tỷ lệ qua sơ tuyển</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TyLeQuaSoTuyenTheoNganh)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.TenNganh</td>
+                                <td class="text-center">@item.TongHoSo</td>
+                                <td class="text-center text-success fw-bold">@item.SoDatSoTuyen</td>
+                                <td style="width: 35%;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 18px;">
+                                            <div class="progress-bar bg-success" style="width: @item.TyLePhanTram%;">@item.TyLePhanTram%</div>
+                                        </div>
+                                        <span class="small fw-bold">@item.TyLePhanTram%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,158 @@
+@*
+    Họ và tên: Mã Đức Thịnh
+    Mã sinh viên: 23103100314
+    Nội dung thực hiện: Module 5 – Xem chi tiết một lịch phỏng vấn,
+    hiển thị thông tin thí sinh, ngành, người phỏng vấn và kết quả (nếu có).
+*@
+@model LichPhongVan
+
+@{
+    ViewData["Title"] = "Chi tiết lịch phỏng vấn";
+    var hoSo   = Model.HoSoXetTuyen;
+    var ketQua = hoSo?.KetQuaXetTuyen;
+
+    string badgeLich = Model.TrangThai == TrangThaiLich.DaLenLich
+                     ? "bg-primary"
+                     : Model.TrangThai == TrangThaiLich.DaHoanThanh
+                         ? "bg-success"
+                         : "bg-secondary";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">
+        Chi tiết lịch phỏng vấn
+        <small class="text-muted fs-6">#@Model.MaLichPhongVan</small>
+    </h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">← Danh sách</a>
+</div>
+
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success">@TempData["ThongBao"]</div>
+}
+@if (TempData["Loi"] != null)
+{
+    <div class="alert alert-danger">@TempData["Loi"]</div>
+}
+
+<div class="row g-4">
+
+    @* ── Thông tin lịch ── *@
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Thông tin lịch</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Trạng thái</dt>
+                    <dd class="col-sm-7"><span class="badge @badgeLich">@Model.TrangThai</span></dd>
+
+                    <dt class="col-sm-5">Bắt đầu</dt>
+                    <dd class="col-sm-7">@Model.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-5">Kết thúc</dt>
+                    <dd class="col-sm-7">@Model.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-5">Hình thức</dt>
+                    <dd class="col-sm-7">@Model.HinhThucPhongVan</dd>
+
+                    <dt class="col-sm-5">Địa điểm / Liên kết</dt>
+                    <dd class="col-sm-7">@Model.DiaDiemHoacLienKet</dd>
+
+                    <dt class="col-sm-5">Người phỏng vấn</dt>
+                    <dd class="col-sm-7">@Model.NguoiPhongVan?.HoTen</dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+                    {
+                        <dt class="col-sm-5">Ghi chú</dt>
+                        <dd class="col-sm-7">@Model.GhiChu</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    @* ── Thông tin hồ sơ / thí sinh [Module 3] ── *@
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Hồ sơ xét tuyển</div>
+            <div class="card-body">
+                @if (hoSo == null)
+                {
+                    <p class="text-muted">Không tìm thấy hồ sơ.</p>
+                }
+                else
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Mã hồ sơ</dt>
+                        <dd class="col-sm-7">#@hoSo.MaHoSo</dd>
+
+                        <dt class="col-sm-5">Thí sinh</dt>
+                        <dd class="col-sm-7">@hoSo.ThiSinh?.HoTen</dd>
+
+                        @* [Module 2] Tên ngành từ NganhTuyenSinh *@
+                        <dt class="col-sm-5">Ngành đăng ký</dt>
+                        <dd class="col-sm-7">@hoSo.NganhTuyenSinh?.TenNganh</dd>
+
+                        <dt class="col-sm-5">Trạng thái hồ sơ</dt>
+                        <dd class="col-sm-7">@hoSo.TrangThai</dd>
+
+                        <dt class="col-sm-5">Ngày nộp</dt>
+                        <dd class="col-sm-7">@hoSo.NgayNop.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── Kết quả phỏng vấn [Module 6] ── *@
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>Kết quả phỏng vấn</span>
+                @* Nút nhập kết quả: chỉ khi lịch hoàn thành và hồ sơ đang "Đã phỏng vấn" *@
+                @if (Model.TrangThai == TrangThaiLich.DaHoanThanh &&
+                     hoSo?.TrangThai == TrangThaiHoSo.DaPhongVan)
+                {
+                    <a asp-action="NhapKetQua" asp-route-id="@Model.MaLichPhongVan"
+                       class="btn btn-sm btn-warning">✏ Nhập kết quả</a>
+                }
+                @* Nút sửa kết quả: khi hồ sơ đã Trúng / Không trúng tuyển *@
+                @if (Model.TrangThai == TrangThaiLich.DaHoanThanh &&
+                     (hoSo?.TrangThai == TrangThaiHoSo.TrungTuyen ||
+                      hoSo?.TrangThai == TrangThaiHoSo.KhongTrungTuyen))
+                {
+                    <a asp-action="NhapKetQua" asp-route-id="@Model.MaLichPhongVan"
+                       class="btn btn-sm btn-outline-warning">✏ Sửa kết quả</a>
+                }
+            </div>
+            <div class="card-body">
+                @if (ketQua == null)
+                {
+                    <p class="text-muted mb-0">Chưa có kết quả phỏng vấn.</p>
+                }
+                else
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Kết quả</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(ketQua.KetQua == KetQuaTuyen.TrungTuyen ? "bg-success" : "bg-danger")">
+                                @ketQua.KetQua
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Điểm đánh giá</dt>
+                        <dd class="col-sm-9">@(ketQua.DiemDanhGia?.ToString("0.##") ?? "—") / 100</dd>
+
+                        <dt class="col-sm-3">Nhận xét</dt>
+                        <dd class="col-sm-9">@(ketQua.NhanXet ?? "—")</dd>
+
+                        <dt class="col-sm-3">Ngày cập nhật</dt>
+                        <dd class="col-sm-9">@ketQua.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
