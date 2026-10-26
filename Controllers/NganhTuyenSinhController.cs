@@ -1,7 +1,12 @@
 // Họ và tên: Đào Văn Khánh
 // Mã sinh viên: 23103100125
-// Nội dung thực hiện: Module 2 - Quản lý ngành tuyển sinh, tìm kiếm, lọc,
-// sắp xếp và phân trang.
+// Đã thực hiện: M2.1-M2.6 CRUD ngành, kiểm tra dữ liệu/trạng thái, tìm kiếm,
+// lọc kết hợp, sắp xếp và phân trang; M2.7 danh mục công khai, chi tiết ngành
+// và hiển thị tình trạng nhận hồ sơ.
+// Cần làm ở M3.3 để hoàn tất M2.7: kiểm tra phía máy chủ khi nộp hồ sơ rằng
+// thí sinh đã đăng nhập và còn hoạt động; ngành đang tuyển, đã đến ngày bắt đầu
+// và chưa quá hạn; dữ liệu bắt buộc, điểm THPT và tổ hợp hợp lệ; không có hồ sơ
+// đang xử lý trùng ngành. Chỉ tạo hồ sơ khi mọi điều kiện đều đạt.
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -119,11 +124,7 @@ public class NganhTuyenSinhController : Controller
         int page = 1,
         int pageSize = DefaultPageSize)
     {
-        var today = DateTime.Today;
         var query = _context.NganhTuyenSinhs
-            .Where(n => n.TrangThai == TrangThaiNganh.DangTuyen
-                && today >= n.NgayBatDauNhanHoSo.Date
-                && today <= n.HanNopHoSo.Date)
             .Include(n => n.Khoa)
             .AsNoTracking()
             .AsQueryable();
@@ -144,11 +145,15 @@ public class NganhTuyenSinhController : Controller
             query = query.Where(n => n.ToHopXetTuyen.Contains(toHop));
         }
 
-        query = sort == "han_asc"
-            ? query.OrderBy(n => n.HanNopHoSo).ThenBy(n => n.TenNganh)
-            : sort == "chiTieu_desc"
-                ? query.OrderByDescending(n => n.ChiTieu).ThenBy(n => n.TenNganh)
-                : query.OrderBy(n => n.TenNganh);
+        query = sort switch
+        {
+            "ten_desc" => query.OrderByDescending(n => n.TenNganh).ThenBy(n => n.MaNganh),
+            "han_asc" => query.OrderBy(n => n.HanNopHoSo).ThenBy(n => n.TenNganh),
+            "han_desc" => query.OrderByDescending(n => n.HanNopHoSo).ThenBy(n => n.TenNganh),
+            "chiTieu_asc" => query.OrderBy(n => n.ChiTieu).ThenBy(n => n.TenNganh),
+            "chiTieu_desc" => query.OrderByDescending(n => n.ChiTieu).ThenBy(n => n.TenNganh),
+            _ => query.OrderBy(n => n.TenNganh).ThenBy(n => n.MaNganh)
+        };
 
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
@@ -179,6 +184,9 @@ public class NganhTuyenSinhController : Controller
             .Include(n => n.Khoa)
             .AsNoTracking()
             .FirstOrDefaultAsync(n => n.MaNganh == id.Value);
+
+        if (nganh != null)
+            ViewBag.DangNhanHoSo = nganh.DangNhanHoSo;
 
         return nganh == null ? NotFound() : View(nganh);
     }
@@ -242,6 +250,19 @@ public class NganhTuyenSinhController : Controller
 
         TempData["Success"] = "Cập nhật ngành tuyển sinh thành công.";
         return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize(Roles = VaiTro.Admin + "," + VaiTro.CanBoTuyenSinh)]
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var nganh = await _context.NganhTuyenSinhs
+            .Include(n => n.Khoa)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(n => n.MaNganh == id.Value);
+
+        return nganh == null ? NotFound() : View(nganh);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

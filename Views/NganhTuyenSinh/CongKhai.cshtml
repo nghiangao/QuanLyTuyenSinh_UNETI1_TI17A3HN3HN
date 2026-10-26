@@ -1,0 +1,113 @@
+@*
+    Họ và tên: Đào Văn Khánh
+    Mã sinh viên: 23103100125
+    Nội dung thực hiện: Module 2.7 - Danh sách ngành công khai, tìm kiếm, lọc, sắp xếp và phân trang.
+*@
+@model IEnumerable<NganhTuyenSinh>
+
+@{
+    ViewData["Title"] = "Danh mục ngành tuyển sinh";
+    string? search = ViewBag.Search as string;
+    int? maKhoa = ViewBag.MaKhoa as int?;
+    string? toHop = ViewBag.ToHop as string;
+    string? sort = ViewBag.Sort as string;
+}
+
+<div class="mb-3">
+    <h1 class="h3 mb-1">Danh mục ngành tuyển sinh</h1>
+    <p class="text-muted mb-0">Xem điều kiện, chỉ tiêu và thời hạn nhận hồ sơ của từng ngành.</p>
+</div>
+
+<form asp-action="CongKhai" method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-12 col-md-5">
+        <label for="search" class="form-label">Từ khóa</label>
+        <input id="search" name="search" value="@search" class="form-control" placeholder="Tên ngành hoặc khoa" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label for="maKhoa" class="form-label">Khoa</label>
+        <select id="maKhoa" name="maKhoa" asp-items="ViewBag.Khoas" class="form-select">
+            <option value="">Tất cả khoa</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="toHop" class="form-label">Tổ hợp</label>
+        <input id="toHop" name="toHop" value="@toHop" class="form-control" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="sort" class="form-label">Sắp xếp</label>
+        <select id="sort" name="sort" class="form-select">
+            <option value="">Tên A-Z</option>
+            <option value="ten_desc" selected="@(sort == "ten_desc")">Tên Z-A</option>
+            <option value="han_asc" selected="@(sort == "han_asc")">Hạn nộp tăng</option>
+            <option value="han_desc" selected="@(sort == "han_desc")">Hạn nộp giảm</option>
+            <option value="chiTieu_asc" selected="@(sort == "chiTieu_asc")">Chỉ tiêu tăng</option>
+            <option value="chiTieu_desc" selected="@(sort == "chiTieu_desc")">Chỉ tiêu giảm</option>
+        </select>
+    </div>
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Tìm ngành</button>
+        <a asp-action="CongKhai" class="btn btn-outline-secondary">Xóa lọc</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Ngành</th>
+                <th>Khoa</th>
+                <th>Tổ hợp</th>
+                <th class="text-end">Chỉ tiêu</th>
+                <th class="text-end">Điểm sàn</th>
+                <th>Thời hạn</th>
+                <th>Tình trạng</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            var statusLabel = item.TrangThai != TrangThaiNganh.DangTuyen
+                ? item.TrangThai
+                : item.DangNhanHoSo
+                    ? "Đang nhận hồ sơ"
+                    : item.HetHan
+                        ? "Đã hết hạn"
+                        : "Chưa mở nhận hồ sơ";
+            <tr>
+                <td class="fw-semibold">@item.TenNganh</td>
+                <td>@item.Khoa?.TenKhoa</td>
+                <td>@item.ToHopXetTuyen</td>
+                <td class="text-end">@item.ChiTieu</td>
+                <td class="text-end">@item.DiemXetTuyenToiThieu.ToString("0.##")</td>
+                <td>@item.NgayBatDauNhanHoSo.ToString("dd/MM/yyyy") - @item.HanNopHoSo.ToString("dd/MM/yyyy")</td>
+                <td><span class="badge @(item.DangNhanHoSo ? "bg-success" : item.HetHan ? "bg-secondary" : "bg-warning text-dark")">@statusLabel</span></td>
+                <td><a asp-action="Details" asp-route-id="@item.MaNganh" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">Không tìm thấy ngành phù hợp.</p>
+}
+
+<nav aria-label="Phân trang ngành tuyển sinh" class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="text-muted">@ViewBag.TotalItems ngành · Trang @ViewBag.Page / @ViewBag.TotalPages</span>
+    <ul class="pagination mb-0">
+        <li class="page-item @((int)ViewBag.Page <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page - 1)" asp-route-pageSize="@ViewBag.PageSize">Trước</a>
+        </li>
+        @for (var pageNumber = 1; pageNumber <= (int)ViewBag.TotalPages; pageNumber++)
+        {
+            <li class="page-item @(pageNumber == (int)ViewBag.Page ? "active" : "")">
+                <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@pageNumber" asp-route-pageSize="@ViewBag.PageSize">@pageNumber</a>
+            </li>
+        }
+        <li class="page-item @((int)ViewBag.Page >= (int)ViewBag.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page + 1)" asp-route-pageSize="@ViewBag.PageSize">Sau</a>
+        </li>
+    </ul>
+</nav>

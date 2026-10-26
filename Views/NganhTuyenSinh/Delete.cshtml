@@ -1,0 +1,25 @@
+@*
+    Họ và tên: Đào Văn Khánh
+    Mã sinh viên: 23103100125
+    Nội dung thực hiện: Module 2.2 - Xác nhận xóa ngành, controller bảo vệ ngành đã có hồ sơ.
+*@
+@model NganhTuyenSinh
+
+@{
+    ViewData["Title"] = "Xóa ngành tuyển sinh";
+}
+
+<h1 class="h3 mb-3">Xóa ngành tuyển sinh</h1>
+<div class="alert alert-warning">Thao tác này không thể hoàn tác. Ngành đã có hồ sơ sẽ được hệ thống từ chối xóa để bảo toàn lịch sử.</div>
+<dl class="row">
+    <dt class="col-sm-3">Tên ngành</dt>
+    <dd class="col-sm-9">@Model.TenNganh</dd>
+    <dt class="col-sm-3">Khoa</dt>
+    <dd class="col-sm-9">@Model.Khoa?.TenKhoa</dd>
+    <dt class="col-sm-3">Trạng thái</dt>
+    <dd class="col-sm-9">@Model.TrangThai</dd>
+</dl>
+<form asp-action="Delete" asp-route-id="@Model.MaNganh" method="post">
+    <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+</form>

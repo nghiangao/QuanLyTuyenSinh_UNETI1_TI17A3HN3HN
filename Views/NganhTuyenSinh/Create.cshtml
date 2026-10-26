@@ -1,0 +1,23 @@
+@*
+    Họ và tên: Đào Văn Khánh
+    Mã sinh viên: 23103100125
+    Nội dung thực hiện: Module 2.1 - Giao diện thêm ngành, chọn khoa từ cơ sở dữ liệu.
+*@
+@model NganhTuyenSinh
+
+@{
+    ViewData["Title"] = "Thêm ngành tuyển sinh";
+}
+
+<h1 class="h3 mb-3">Thêm ngành tuyển sinh</h1>
+<form asp-action="Create" method="post" class="border rounded p-3">
+    <partial name="_Form" model="Model" />
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Lưu ngành</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

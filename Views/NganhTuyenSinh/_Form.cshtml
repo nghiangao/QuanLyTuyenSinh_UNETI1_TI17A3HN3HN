@@ -1,0 +1,67 @@
+@*
+    Họ và tên: Đào Văn Khánh
+    Mã sinh viên: 23103100125
+    Nội dung thực hiện: Module 2.1-2.2 - Biểu mẫu thêm/sửa ngành và kiểm tra dữ liệu.
+*@
+@model NganhTuyenSinh
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="TenNganh" class="form-label"></label>
+        <input asp-for="TenNganh" class="form-control" />
+        <span asp-validation-for="TenNganh" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="MaKhoa" class="form-label"></label>
+        <select asp-for="MaKhoa" asp-items="ViewBag.Khoas" class="form-select">
+            <option value="">-- Chọn khoa --</option>
+        </select>
+        <span asp-validation-for="MaKhoa" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="ChiTieu" class="form-label"></label>
+        <input asp-for="ChiTieu" class="form-control" />
+        <span asp-validation-for="ChiTieu" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="DiemXetTuyenToiThieu" class="form-label"></label>
+        <input asp-for="DiemXetTuyenToiThieu" class="form-control" />
+        <span asp-validation-for="DiemXetTuyenToiThieu" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="TrangThai" class="form-label"></label>
+        <select asp-for="TrangThai" class="form-select">
+            <option value="@TrangThaiNganh.ChuaMo">@TrangThaiNganh.ChuaMo</option>
+            <option value="@TrangThaiNganh.DangTuyen">@TrangThaiNganh.DangTuyen</option>
+            <option value="@TrangThaiNganh.TamDung">@TrangThaiNganh.TamDung</option>
+            <option value="@TrangThaiNganh.DaDong">@TrangThaiNganh.DaDong</option>
+        </select>
+        <span asp-validation-for="TrangThai" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ToHopXetTuyen" class="form-label"></label>
+        <input asp-for="ToHopXetTuyen" class="form-control" />
+        <span asp-validation-for="ToHopXetTuyen" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="NgayBatDauNhanHoSo" class="form-label"></label>
+        <input asp-for="NgayBatDauNhanHoSo" type="date" class="form-control" />
+        <span asp-validation-for="NgayBatDauNhanHoSo" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="HanNopHoSo" class="form-label"></label>
+        <input asp-for="HanNopHoSo" type="date" class="form-control" />
+        <span asp-validation-for="HanNopHoSo" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="MoTaNganh" class="form-label"></label>
+        <textarea asp-for="MoTaNganh" rows="4" class="form-control"></textarea>
+        <span asp-validation-for="MoTaNganh" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="YeuCauThiSinh" class="form-label"></label>
+        <textarea asp-for="YeuCauThiSinh" rows="4" class="form-control"></textarea>
+        <span asp-validation-for="YeuCauThiSinh" class="text-danger"></span>
+    </div>
+</div>
