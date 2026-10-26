@@ -1,0 +1,349 @@
+@*
+//Họ và tên: Nguyễn Đức Nghĩa
+//Mã sinh viên: 23103100307
+//Nội dung thực hiện: Giao diện xem chi tiết hồ sơ xét tuyển và kiểm soát chỉ tiêu ngành (Task M4.1, M4.6).
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.ViewModels.HoSoXetTuyenDetailsViewModel
+@using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
+
+@{
+    ViewData["Title"] = $"Chi tiết hồ sơ #{Model.MaHoSo} - {Model.HoTen}";
+}
+
+<div class="container py-3">
+    <!-- Tiêu đề & Nút thao tác nhanh -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold text-primary mb-1">
+                📄 Chi tiết hồ sơ xét tuyển #@Model.MaHoSo
+            </h3>
+            <p class="text-muted small mb-0">Thí sinh: <strong>@Model.HoTen</strong> | Ngành đăng ký: <strong>@Model.TenNganh</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.TrangThai == TrangThaiHoSo.ChoDuyet)
+            {
+                <a asp-action="SoTuyen" asp-route-id="@Model.MaHoSo" class="btn btn-warning fw-bold">
+                    ⚡ Thực hiện sơ tuyển
+                </a>
+            }
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                &laquo; Quay lại danh sách
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <strong>Thành công!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <strong>Thông báo lỗi:</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Task M4.6: CẢNH BÁO KIỂM SOÁT CHỈ TIÊU -->
+    @if (Model.DaDatChiTieu)
+    {
+        <div class="alert alert-warning border-warning shadow-sm mb-4">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="alert-heading fw-bold text-danger mb-1">
+                        ⚠️ CẢNH BÁO CHỈ TIÊU: Ngành đã đạt/vượt chỉ tiêu tuyển sinh!
+                    </h5>
+                    <p class="mb-0 text-dark">
+                        Số lượng thí sinh đã trúng tuyển: <strong class="text-danger">@Model.SoLuongTrungTuyen</strong> /
+                        Chỉ tiêu được giao: <strong>@Model.ChiTieu</strong> thí sinh.
+                    </p>
+                    <small class="text-muted">
+                        Theo quy định: Tuyệt đối không xóa hoặc làm mất các hồ sơ còn lại. Hệ thống cho phép Cán bộ đóng nhận thêm hồ sơ cho ngành này.
+                    </small>
+                </div>
+                @if (Model.ChoPhepDongNganh)
+                {
+                    <form asp-action="DongNganh" method="post" class="ms-3"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn đóng ngành tuyển sinh @Model.TenNganh không? Tất cả các hồ sơ hiện có sẽ được giữ nguyên.');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="maNganh" value="@Model.MaNganh" />
+                        <input type="hidden" name="maHoSo" value="@Model.MaHoSo" />
+                        <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                            🔒 Đóng ngành tuyển sinh
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <span class="badge bg-secondary p-2">Ngành đã đóng tuyển</span>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Cột trái: Thông tin thí sinh -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0">👤 Thông tin thí sinh</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted" style="width: 35%;">Họ và tên:</th>
+                                <td class="fw-bold fs-5 text-dark">@Model.HoTen</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tài khoản:</th>
+                                <td><code>@(Model.TenDangNhap ?? "Chưa liên kết")</code></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Ngày sinh:</th>
+                                <td>@Model.NgaySinh.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Giới tính:</th>
+                                <td>@Model.GioiTinh</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Số điện thoại:</th>
+                                <td>@(Model.SoDienThoai ?? "Chưa cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Email:</th>
+                                <td>@(Model.Email ?? "Chưa cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Địa chỉ:</th>
+                                <td>@(Model.DiaChi ?? "Chưa cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Trường THPT:</th>
+                                <td>@(Model.TruongTHPT ?? "Chưa cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tổ hợp xét tuyển:</th>
+                                <td>
+                                    <span class="badge bg-secondary fs-6">@(Model.ToHopThiSinh ?? "Chưa khai báo")</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Điểm thi THPT:</th>
+                                <td>
+                                    @if (Model.DiemThiTHPT.HasValue)
+                                    {
+                                        <span class="fw-bold fs-5 text-primary">@Model.DiemThiTHPT.Value.ToString("F2")</span> <span class="text-muted">/ 30 điểm</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger fst-italic">Chưa có điểm thi</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Thành tích nổi bật:</th>
+                                <td>@(Model.ThanhTichNoiBat ?? "Không có")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Trạng thái thí sinh:</th>
+                                <td>
+                                    @if (Model.ThiSinhHoatDong)
+                                    {
+                                        <span class="badge bg-success">Đang hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Bị khóa / Ngừng hoạt động</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Thông tin Ngành & Nguyện vọng xét tuyển -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-info text-dark py-3">
+                    <h5 class="card-title mb-0">🎯 Ngành đăng ký xét tuyển</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted" style="width: 35%;">Tên ngành:</th>
+                                <td class="fw-bold text-dark fs-5">@Model.TenNganh</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Khoa trực thuộc:</th>
+                                <td><span class="badge bg-light text-dark border">@Model.TenKhoa</span></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Chỉ tiêu ngành:</th>
+                                <td>
+                                    <strong>@Model.ChiTieu</strong> chỉ tiêu
+                                    <span class="ms-2 badge bg-primary">Đã trúng tuyển: @Model.SoLuongTrungTuyen</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tổ hợp yêu cầu:</th>
+                                <td><code>@Model.ToHopXetTuyenNganh</code></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Điểm sàn tối thiểu:</th>
+                                <td><span class="fw-bold text-danger">@Model.DiemXetTuyenToiThieu.ToString("F2") điểm</span></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Hạn nộp hồ sơ:</th>
+                                <td>@Model.HanNopHoSo.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Trạng thái ngành:</th>
+                                <td>
+                                    @if (Model.TrangThaiNganh == "Đang tuyển")
+                                    {
+                                        <span class="badge bg-success">@Model.TrangThaiNganh</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@Model.TrangThaiNganh</span>
+                                    }
+                                </td>
+                            </tr>
+                            @if (!string.IsNullOrWhiteSpace(Model.YeuCauThiSinh))
+                            {
+                                <tr>
+                                    <th class="text-muted">Yêu cầu đặc thù:</th>
+                                    <td><small class="text-secondary">@Model.YeuCauThiSinh</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Card Trạng thái xử lý hồ sơ -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0 text-dark">📋 Thông tin xử lý hồ sơ</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted" style="width: 35%;">Ngày nộp:</th>
+                                <td>@Model.NgayNop.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Nguyện vọng:</th>
+                                <td class="fw-semibold">@Model.NguyenVongXetTuyen</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Ghi chú thí sinh:</th>
+                                <td>@(Model.GhiChu ?? "Không có")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Trạng thái hiện tại:</th>
+                                <td>
+                                    <span class="badge bg-primary fs-6 px-3 py-2">@Model.TrangThai</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Ngày xử lý:</th>
+                                <td>
+                                    @(Model.NgayXuLy.HasValue ? Model.NgayXuLy.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa xử lý")
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Nhận xét sơ tuyển:</th>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(Model.NhanXetSoTuyen))
+                                    {
+                                        <div class="p-2 bg-light border rounded text-dark">
+                                            @Model.NhanXetSoTuyen
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">Chưa có nhận xét</span>
+                                    }
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hàng dưới: Lịch phỏng vấn & Kết quả xét tuyển (nếu có) -->
+    @if (Model.LichPhongVans.Any() || Model.KetQuaXetTuyen != null)
+    {
+        <div class="row g-4 mt-2">
+            @if (Model.LichPhongVans.Any())
+            {
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="card-title mb-0 text-dark">📅 Lịch phỏng vấn đã xếp</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @foreach (var lich in Model.LichPhongVans)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold">@lich.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm") - @lich.ThoiGianKetThuc.ToString("HH:mm")</div>
+                                            <small class="text-muted">Hình thức: @lich.HinhThucPhongVan | Địa điểm: @lich.DiaDiemHoacLienKet</small>
+                                        </div>
+                                        <span class="badge bg-info text-dark">@lich.TrangThai</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.KetQuaXetTuyen != null)
+            {
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="card-title mb-0 text-dark">🏆 Kết quả xét tuyển cuối cùng</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Kết quả:</span>
+                                <span class="badge bg-success fs-6">@Model.KetQuaXetTuyen.KetQua</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Điểm đánh giá:</span>
+                                <strong class="fs-5 text-primary">@(Model.KetQuaXetTuyen.DiemDanhGia.HasValue ? Model.KetQuaXetTuyen.DiemDanhGia.Value.ToString("F2") : "—")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Ngày cập nhật:</span>
+                                <span>@Model.KetQuaXetTuyen.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.KetQuaXetTuyen.NhanXet))
+                            {
+                                <div class="mt-2 p-2 bg-light border rounded">
+                                    <small class="fw-bold">Nhận xét:</small> @Model.KetQuaXetTuyen.NhanXet
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

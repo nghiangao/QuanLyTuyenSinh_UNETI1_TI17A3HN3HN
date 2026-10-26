@@ -1,7 +1,8 @@
-// Họ và tên: Nguyễn Đức Nghĩa
-// Mã sinh viên: 23103100307
-// Nội dung thực hiện: Module 4 - Repository Implementation thao tác với DbContext theo kiến trúc N-Tier.
+//Họ và tên: Nguyễn Đức Nghĩa
+//Mã sinh viên: 23103100307
+//Nội dung thực hiện: Module 4 - Repository Implementation thao tác với DbContext theo kiến trúc N-Tier.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +63,37 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Repositories
         {
             return _context.HoSoXetTuyens.AsQueryable();
         }
+
+        public IQueryable<HoSoXetTuyen> GetAllWithDetailsQueryable()
+        {
+            return _context.HoSoXetTuyens
+                .Include(h => h.ThiSinh)
+                .Include(h => h.NganhTuyenSinh)
+                    .ThenInclude(n => n!.Khoa)
+                .AsQueryable();
+        }
+
+        public async Task<List<Khoa>> GetDanhSachKhoaAsync()
+        {
+            return await _context.Khoas.OrderBy(k => k.TenKhoa).ToListAsync();
+        }
+
+        public async Task<NganhTuyenSinh?> GetNganhByIdAsync(int maNganh)
+        {
+            return await _context.NganhTuyenSinhs
+                .Include(n => n.Khoa)
+                .FirstOrDefaultAsync(n => n.MaNganh == maNganh);
+        }
+
+        public async Task DongNganhTuyenSinhAsync(int maNganh)
+        {
+            var nganh = await _context.NganhTuyenSinhs.FindAsync(maNganh);
+            if (nganh != null)
+            {
+                nganh.TrangThai = TrangThaiNganh.DaDong;
+                _context.NganhTuyenSinhs.Update(nganh);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
-

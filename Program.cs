@@ -34,15 +34,16 @@ builder.Services.AddDbContext<TuyenSinhDbContext>(options =>
 // Đăng ký tầng Repositories & Services theo kiến trúc N-Tier
 builder.Services.AddScoped<IHoSoXetTuyenRepository, HoSoXetTuyenRepository>();
 builder.Services.AddScoped<IHoSoTrangThaiService, HoSoTrangThaiService>();
+builder.Services.AddScoped<IHoSoXetTuyenService, HoSoXetTuyenService>();
 
 // Cấu hình Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 
 var app = builder.Build();
 

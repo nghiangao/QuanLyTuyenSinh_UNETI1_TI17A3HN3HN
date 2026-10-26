@@ -1,0 +1,318 @@
+@*
+//Họ và tên: Nguyễn Đức Nghĩa
+//Mã sinh viên: 23103100307
+//Nội dung thực hiện: Giao diện màn sơ tuyển hồ sơ, đối chiếu tiêu chí và duyệt/từ chối (Task M4.3, M4.4, M4.5).
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.ViewModels.SoTuyenViewModel
+@using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
+
+@{
+    ViewData["Title"] = $"Sơ tuyển hồ sơ #{Model.MaHoSo} - {Model.HoTenThiSinh}";
+}
+
+<div class="container py-3">
+    <!-- Tiêu đề -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold text-primary mb-1">
+                ⚖️ Màn sơ tuyển hồ sơ xét tuyển #@Model.MaHoSo
+            </h3>
+            <p class="text-muted small mb-0">
+                Thí sinh: <strong>@Model.HoTenThiSinh</strong> | Ngành: <strong>@Model.TenNganh</strong> (@Model.TenKhoa)
+            </p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                &laquo; Quay lại danh sách
+            </a>
+            <a asp-action="Details" asp-route-id="@Model.MaHoSo" class="btn btn-outline-info btn-sm">
+                Xem chi tiết hồ sơ
+            </a>
+        </div>
+    </div>
+
+    <!-- M4.4: KHU VỰC KIỂM TRA 4 ĐIỀU KIỆN NGHIỆP VỤ TRƯỚC KHI DUYỆT -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header @(Model.DuDieuKienSoTuyen ? "bg-success text-white" : "bg-danger text-white") py-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold">
+                @(Model.DuDieuKienSoTuyen ? "✅ Kiểm tra điều kiện: Đủ điều kiện sơ tuyển" : "❌ Cảnh báo: Hồ sơ vi phạm điều kiện sơ tuyển")
+            </span>
+            <span class="badge @(Model.DuDieuKienSoTuyen ? "bg-white text-success" : "bg-white text-danger")">
+                Task M4.4
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="p-2 border rounded @(Model.DieuKien1_HoSoTonTaiVaChuaHuy ? "border-success bg-success bg-opacity-10" : "border-danger bg-danger bg-opacity-10")">
+                        <strong>1. Hồ sơ tồn tại & chưa bị hủy:</strong>
+                        <span class="float-end">@(Model.DieuKien1_HoSoTonTaiVaChuaHuy ? "✅ Hợp lệ" : "❌ Vi phạm")</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 border rounded @(Model.DieuKien2_NganhTonTai ? "border-success bg-success bg-opacity-10" : "border-danger bg-danger bg-opacity-10")">
+                        <strong>2. Ngành tuyển sinh liên quan tồn tại:</strong>
+                        <span class="float-end">@(Model.DieuKien2_NganhTonTai ? "✅ Hợp lệ" : "❌ Vi phạm")</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 border rounded @(Model.DieuKien3_ThiSinhHoatDong ? "border-success bg-success bg-opacity-10" : "border-danger bg-danger bg-opacity-10")">
+                        <strong>3. Thí sinh đang hoạt động:</strong>
+                        <span class="float-end">@(Model.DieuKien3_ThiSinhHoatDong ? "✅ Hoạt động" : "❌ Đã khóa")</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 border rounded @(Model.DieuKien4_ChuaSoTuyen ? "border-success bg-success bg-opacity-10" : "border-danger bg-danger bg-opacity-10")">
+                        <strong>4. Chưa có kết quả sơ tuyển trước đó (Chờ duyệt):</strong>
+                        <span class="float-end">@(Model.DieuKien4_ChuaSoTuyen ? "✅ Chờ duyệt" : $"❌ {Model.TrangThaiHienTai}")</span>
+                    </div>
+                </div>
+            </div>
+
+            @if (!Model.DuDieuKienSoTuyen)
+            {
+                <div class="alert alert-danger mt-3 mb-0 py-2">
+                    <ul class="mb-0">
+                        @foreach (var loi in Model.DanhSachLoiDieuKien)
+                        {
+                            <li>@loi</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- M4.3: KHU VỰC THÔNG TIN & ĐỐI CHIẾU TIÊU CHÍ THAM KHẢO -->
+    <div class="row g-4 mb-4">
+        <!-- Cột Thí sinh -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light py-2">
+                    <h5 class="card-title mb-0 text-dark">👤 Hồ sơ thí sinh cung cấp</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted" style="width: 40%;">Họ tên:</th>
+                                <td class="fw-bold">@Model.HoTenThiSinh</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Ngày sinh / Phái:</th>
+                                <td>@Model.NgaySinh.ToString("dd/MM/yyyy") (@Model.GioiTinh)</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Trường THPT:</th>
+                                <td>@(Model.TruongTHPT ?? "Chưa cập nhật")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tổ hợp đăng ký:</th>
+                                <td>
+                                    <span class="badge bg-secondary fs-6">@(Model.ToHopThiSinh ?? "Chưa có")</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Điểm thi THPT:</th>
+                                <td>
+                                    @if (Model.DiemThiTHPT.HasValue)
+                                    {
+                                        <span class="fw-bold fs-5 text-primary">@Model.DiemThiTHPT.Value.ToString("F2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger fst-italic">Chưa có điểm</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Thành tích:</th>
+                                <td>@(Model.ThanhTichNoiBat ?? "Không có")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Nguyện vọng:</th>
+                                <td>@Model.NguyenVongXetTuyen</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột Ngành tuyển sinh -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light py-2">
+                    <h5 class="card-title mb-0 text-dark">🎯 Yêu cầu ngành tuyển sinh</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted" style="width: 40%;">Tên ngành:</th>
+                                <td class="fw-bold text-dark">@Model.TenNganh</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Khoa:</th>
+                                <td>@Model.TenKhoa</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Chỉ tiêu:</th>
+                                <td>@Model.ChiTieu thí sinh</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Tổ hợp yêu cầu:</th>
+                                <td>
+                                    <span class="badge bg-info text-dark fs-6">@Model.ToHopYeuCauNganh</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Điểm sàn tối thiểu:</th>
+                                <td>
+                                    <span class="fw-bold fs-5 text-danger">@Model.DiemXetTuyenToiThieu.ToString("F2")</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Hạn nộp hồ sơ:</th>
+                                <td>@Model.HanNopHoSo.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Yêu cầu thí sinh:</th>
+                                <td><small class="text-secondary">@(Model.YeuCauThiSinh ?? "Theo quy chế chung")</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hộp so sánh đối chiếu (M4.3) -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-header bg-secondary text-white py-2">
+            <span class="fw-semibold">📊 Bảng so sánh đối chiếu tham khảo (Task M4.3)</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card border p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">1. Đối chiếu tổ hợp xét tuyển:</span>
+                            @if (Model.ToHopPhuHop == true)
+                            {
+                                <span class="badge bg-success">Tổ hợp phù hợp</span>
+                            }
+                            else if (Model.ToHopPhuHop == false)
+                            {
+                                <span class="badge bg-danger">Không khớp tổ hợp</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Chưa đủ dữ liệu</span>
+                            }
+                        </div>
+                        <p class="small text-muted mb-0">@Model.ThongTinSoSanhToHop</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">2. Đối chiếu điểm thi với điểm sàn:</span>
+                            @if (Model.DiemDatChuanToiThieu == true)
+                            {
+                                <span class="badge bg-success">Đạt chuẩn tối thiểu</span>
+                            }
+                            else if (Model.DiemDatChuanToiThieu == false)
+                            {
+                                <span class="badge bg-warning text-dark">Dưới điểm sàn tối thiểu</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Chưa đủ dữ liệu</span>
+                            }
+                        </div>
+                        <p class="small text-muted mb-0">@Model.ThongTinSoSanhDiem</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 p-2 bg-white border rounded">
+                <small class="text-muted">
+                    📌 <strong>Ghi chú quy trình:</strong> Thông tin đối chiếu trên được hệ thống hỗ trợ để Cán bộ tuyển sinh tham khảo nhanh. Hệ thống tuyệt đối không tự ý quyết định kết quả sơ tuyển; việc Đạt hay Không đạt do Cán bộ tuyển sinh xem xét và đưa ra quyết định tại Form bên dưới.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- M4.5: FORM QUYẾT ĐỊNH SƠ TUYỂN CỦA CÁN BỘ -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="card-title mb-0">✍️ Quyết định sơ tuyển hồ sơ (Task M4.5)</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="SoTuyen" asp-route-id="@Model.MaHoSo" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="MaHoSo" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- Lựa chọn kết quả -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark">
+                        Kết quả sơ tuyển <span class="text-danger">*</span>
+                    </label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check form-check-inline p-3 border rounded @(Model.KetQuaSoTuyen == TrangThaiHoSo.DatSoTuyen ? "border-success bg-success bg-opacity-10" : "")">
+                            <input class="form-check-input" type="radio" asp-for="KetQuaSoTuyen"
+                                   id="kqDat" value="@TrangThaiHoSo.DatSoTuyen"
+                                   disabled="@(!Model.DuDieuKienSoTuyen)" />
+                            <label class="form-check-label fw-bold text-success" for="kqDat">
+                                ✅ Đạt sơ tuyển
+                            </label>
+                            <div class="small text-muted">Hồ sơ hợp lệ, đủ điều kiện để xếp lịch phỏng vấn.</div>
+                        </div>
+
+                        <div class="form-check form-check-inline p-3 border rounded @(Model.KetQuaSoTuyen == TrangThaiHoSo.KhongDatSoTuyen ? "border-danger bg-danger bg-opacity-10" : "")">
+                            <input class="form-check-input" type="radio" asp-for="KetQuaSoTuyen"
+                                   id="kqKhongDat" value="@TrangThaiHoSo.KhongDatSoTuyen"
+                                   disabled="@(!Model.DuDieuKienSoTuyen)" />
+                            <label class="form-check-label fw-bold text-danger" for="kqKhongDat">
+                                ❌ Không đạt sơ tuyển
+                            </label>
+                            <div class="small text-muted">Hồ sơ không đáp ứng yêu cầu (nhánh kết thúc sơ tuyển).</div>
+                        </div>
+                    </div>
+                    <span asp-validation-for="KetQuaSoTuyen" class="text-danger small"></span>
+                </div>
+
+                <!-- Nhận xét sơ tuyển -->
+                <div class="mb-4">
+                    <label asp-for="NhanXetSoTuyen" class="form-label fw-bold text-dark">
+                        Nhận xét / Đánh giá của Cán bộ tuyển sinh <span class="text-danger">*</span>
+                    </label>
+                    <textarea asp-for="NhanXetSoTuyen" class="form-control" rows="4"
+                              placeholder="Nhập ghi chú, lý do đạt hoặc không đạt sơ tuyển (hệ thống sẽ tự động gán ngày giờ xử lý hiện tại)..."
+                              disabled="@(!Model.DuDieuKienSoTuyen)"></textarea>
+                    <span asp-validation-for="NhanXetSoTuyen" class="text-danger small"></span>
+                    <small class="text-muted">Nhận xét này sẽ được lưu cố định cùng hồ sơ và thí sinh không được phép chỉnh sửa.</small>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold" disabled="@(!Model.DuDieuKienSoTuyen)">
+                        💾 Lưu kết quả sơ tuyển
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                        Hủy bỏ
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
