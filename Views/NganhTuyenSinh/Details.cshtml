@@ -1,0 +1,58 @@
+@*
+    Họ và tên: Đào Văn Khánh
+    Mã sinh viên: 23103100125
+    Nội dung thực hiện: Module 2.1 và 2.7 - Chi tiết ngành và tình trạng nhận hồ sơ.
+*@
+@model NganhTuyenSinh
+
+@{
+    ViewData["Title"] = "Chi tiết ngành tuyển sinh";
+    var dangNhanHoSo = ViewBag.DangNhanHoSo is bool value && value;
+    var statusLabel = Model.TrangThai != TrangThaiNganh.DangTuyen
+        ? Model.TrangThai
+        : dangNhanHoSo
+            ? "Đang nhận hồ sơ"
+            : Model.HetHan
+                ? "Đã hết hạn"
+                : "Chưa mở nhận hồ sơ";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">@Model.TenNganh</h1>
+        <span class="badge @(dangNhanHoSo ? "bg-success" : Model.HetHan ? "bg-secondary" : "bg-warning text-dark")">@statusLabel</span>
+    </div>
+    @if (User.IsInRole(VaiTro.Admin) || User.IsInRole(VaiTro.CanBoTuyenSinh))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.MaNganh" class="btn btn-outline-primary">Sửa ngành</a>
+    }
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Khoa</dt>
+    <dd class="col-sm-9">@Model.Khoa?.TenKhoa</dd>
+    <dt class="col-sm-3">Chỉ tiêu</dt>
+    <dd class="col-sm-9">@Model.ChiTieu</dd>
+    <dt class="col-sm-3">Tổ hợp xét tuyển</dt>
+    <dd class="col-sm-9">@Model.ToHopXetTuyen</dd>
+    <dt class="col-sm-3">Điểm xét tuyển tối thiểu</dt>
+    <dd class="col-sm-9">@Model.DiemXetTuyenToiThieu.ToString("0.##")</dd>
+    <dt class="col-sm-3">Thời gian nhận hồ sơ</dt>
+    <dd class="col-sm-9">@Model.NgayBatDauNhanHoSo.ToString("dd/MM/yyyy") - @Model.HanNopHoSo.ToString("dd/MM/yyyy")</dd>
+    @if (!string.IsNullOrWhiteSpace(Model.MoTaNganh))
+    {
+        <dt class="col-sm-3">Mô tả ngành</dt>
+        <dd class="col-sm-9">@Model.MoTaNganh</dd>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.YeuCauThiSinh))
+    {
+        <dt class="col-sm-3">Yêu cầu thí sinh</dt>
+        <dd class="col-sm-9">@Model.YeuCauThiSinh</dd>
+    }
+</dl>
+
+@if (!dangNhanHoSo)
+{
+    <p class="text-muted">Ngành này hiện chưa đủ điều kiện để nhận hồ sơ.</p>
+}
+<a asp-action="CongKhai" class="btn btn-outline-secondary">Danh sách ngành</a>
