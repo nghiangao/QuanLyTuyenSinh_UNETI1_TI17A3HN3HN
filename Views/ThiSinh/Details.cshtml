@@ -1,0 +1,94 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.2 - Chi tiết thí sinh.
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.ThiSinh
+
+@{
+    ViewData["Title"] = "Chi tiết thí sinh";
+}
+
+<div class="container py-3" style="max-width: 950px">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">Chi tiết thí sinh</h2>
+
+        <a asp-controller="ThiSinh" asp-action="Index"
+           class="btn btn-outline-secondary">
+            Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Thông tin thí sinh
+        </div>
+
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Mã thí sinh</dt>
+                <dd class="col-sm-8">@Model.MaThiSinh</dd>
+
+                <dt class="col-sm-4">Họ tên</dt>
+                <dd class="col-sm-8">@Model.HoTen</dd>
+
+                <dt class="col-sm-4">Mã tài khoản</dt>
+                <dd class="col-sm-8">@Model.MaTaiKhoan</dd>
+
+                <dt class="col-sm-4">Tên đăng nhập</dt>
+                <dd class="col-sm-8">
+                    @(Model.TaiKhoan?.TenDangNhap ?? "Chưa có")
+                </dd>
+
+                <dt class="col-sm-4">Ngày sinh</dt>
+                <dd class="col-sm-8">
+                    @Model.NgaySinh.ToString("dd/MM/yyyy")
+                </dd>
+
+                <dt class="col-sm-4">Giới tính</dt>
+                <dd class="col-sm-8">@Model.GioiTinh</dd>
+
+                <dt class="col-sm-4">Số điện thoại</dt>
+                <dd class="col-sm-8">
+                    @(Model.SoDienThoai ?? "Chưa cập nhật")
+                </dd>
+
+                <dt class="col-sm-4">Email</dt>
+                <dd class="col-sm-8">
+                    @(Model.Email ?? "Chưa cập nhật")
+                </dd>
+
+                <dt class="col-sm-4">Địa chỉ</dt>
+                <dd class="col-sm-8">
+                    @(Model.DiaChi ?? "Chưa cập nhật")
+                </dd>
+
+                <dt class="col-sm-4">Tổ hợp xét tuyển</dt>
+                <dd class="col-sm-8">
+                    @(Model.ToHopXetTuyen ?? "Chưa khai báo")
+                </dd>
+
+                <dt class="col-sm-4">Trường THPT</dt>
+                <dd class="col-sm-8">
+                    @(Model.TruongTHPT ?? "Chưa cập nhật")
+                </dd>
+
+                <dt class="col-sm-4">Điểm thi THPT</dt>
+                <dd class="col-sm-8">
+                    @(Model.DiemThiTHPT?.ToString("0.##")
+                        ?? "Chưa khai báo")
+                </dd>
+
+                <dt class="col-sm-4">Thành tích nổi bật</dt>
+                <dd class="col-sm-8">
+                    @(Model.ThanhTichNoiBat ?? "Không có")
+                </dd>
+
+                <dt class="col-sm-4">Trạng thái</dt>
+                <dd class="col-sm-8">
+                    @(Model.TrangThai ? "Hoạt động" : "Ngừng hoạt động")
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>

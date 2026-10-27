@@ -1,0 +1,112 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.2 - Danh sách và tìm kiếm thí sinh.
+*@
+@model IEnumerable<QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.ThiSinh>
+
+@{
+    ViewData["Title"] = "Quản lý thí sinh";
+}
+
+<div class="container-fluid py-3">
+    <h2 class="text-primary mb-3">Quản lý thí sinh</h2>
+
+    <form method="get"
+          asp-controller="ThiSinh"
+          asp-action="Index"
+          class="row g-2 mb-3">
+
+        <div class="col-md-5">
+            <input type="search"
+                   name="search"
+                   value="@ViewBag.Search"
+                   class="form-control"
+                   placeholder="Tìm theo họ tên, email, số điện thoại hoặc tên đăng nhập..." />
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
+                Tìm kiếm
+            </button>
+
+            <a asp-controller="ThiSinh" asp-action="Index"
+               class="btn btn-outline-secondary">
+                Xóa lọc
+            </a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Mã thí sinh</th>
+                    <th>Họ tên</th>
+                    <th>Tên đăng nhập</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Điểm THPT</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            Không tìm thấy thí sinh phù hợp.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.MaThiSinh</td>
+                            <td>@item.HoTen</td>
+                            <td>
+                                @(item.TaiKhoan?.TenDangNhap ?? "Chưa có")
+                            </td>
+                            <td>
+                                @(item.Email ?? "Chưa cập nhật")
+                            </td>
+                            <td>
+                                @(item.SoDienThoai ?? "Chưa cập nhật")
+                            </td>
+                            <td>
+                                @(item.DiemThiTHPT?.ToString("0.##")
+                                    ?? "Chưa khai báo")
+                            </td>
+                            <td>
+                                @if (item.TrangThai)
+                                {
+                                    <span class="badge bg-success">
+                                        Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Ngừng hoạt động
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="ThiSinh"
+                                   asp-action="Details"
+                                   asp-route-id="@item.MaThiSinh"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -35,6 +35,30 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="NganhTuyenSinh" asp-action="Index">Quản lý ngành</a>
                             </li>
                         }
+                        
+                        @* Menu Module 3 - Quản lý thí sinh *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Cán bộ tuyển sinh"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-controller="ThiSinh"
+                                   asp-action="Index">
+                                    Quản lý thí sinh (M3)
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Thí sinh"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-controller="ThiSinh"
+                                   asp-action="ThongTinCaNhan">
+                                    Thông tin cá nhân
+                                </a>
+                            </li>
+                        }
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Khoa" asp-action="Index">Khoa</a>
                         </li>

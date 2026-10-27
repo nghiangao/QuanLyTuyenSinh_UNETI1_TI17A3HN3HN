@@ -1,0 +1,141 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.1 - Hồ sơ cá nhân thí sinh.
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.ThiSinh
+
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<div class="container py-3" style="max-width: 900px">
+    <h2 class="text-primary mb-3">Hồ sơ cá nhân thí sinh</h2>
+
+    <p class="text-muted">
+        Vui lòng nhập và kiểm tra thông tin cá nhân của bạn.
+    </p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div asp-validation-summary="ModelOnly"
+         class="text-danger mb-3"></div>
+
+    <form asp-controller="ThiSinh"
+          asp-action="ThongTinCaNhan"
+          method="post"
+          class="card shadow-sm">
+
+        @Html.AntiForgeryToken()
+
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <label asp-for="HoTen" class="form-label"></label>
+                <input asp-for="HoTen" class="form-control" />
+                <span asp-validation-for="HoTen"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="NgaySinh" class="form-label"></label>
+                <input asp-for="NgaySinh" type="date"
+                       class="form-control" />
+                <span asp-validation-for="NgaySinh"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="GioiTinh" class="form-label"></label>
+                <select asp-for="GioiTinh" class="form-select">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                </select>
+                <span asp-validation-for="GioiTinh"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="SoDienThoai" class="form-label"></label>
+                <input asp-for="SoDienThoai" class="form-control" />
+                <span asp-validation-for="SoDienThoai"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" type="email"
+                       class="form-control" />
+                <span asp-validation-for="Email"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DiaChi" class="form-label"></label>
+                <input asp-for="DiaChi" class="form-control" />
+                <span asp-validation-for="DiaChi"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ToHopXetTuyen"
+                       class="form-label"></label>
+                <input asp-for="ToHopXetTuyen"
+                       class="form-control"
+                       placeholder="Ví dụ: A00, A01" />
+                <span asp-validation-for="ToHopXetTuyen"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="TruongTHPT"
+                       class="form-label"></label>
+                <input asp-for="TruongTHPT" class="form-control" />
+                <span asp-validation-for="TruongTHPT"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DiemThiTHPT"
+                       class="form-label"></label>
+                <input asp-for="DiemThiTHPT"
+                       type="number" min="0" max="30" step="0.01"
+                       class="form-control" />
+                <span asp-validation-for="DiemThiTHPT"
+                      class="text-danger"></span>
+                <small class="text-muted">
+                    Điểm thi phải nằm trong khoảng từ 0 đến 30.
+                </small>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="ThanhTichNoiBat"
+                       class="form-label"></label>
+                <textarea asp-for="ThanhTichNoiBat"
+                          rows="3" class="form-control"></textarea>
+                <span asp-validation-for="ThanhTichNoiBat"
+                      class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white">
+            <button type="submit" class="btn btn-primary">
+                Lưu thông tin
+            </button>
+
+            <a asp-controller="Home" asp-action="Index"
+               class="btn btn-outline-secondary">
+                Về trang chủ
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
