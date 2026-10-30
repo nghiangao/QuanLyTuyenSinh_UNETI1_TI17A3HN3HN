@@ -1,0 +1,114 @@
+@model IEnumerable<QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.TaiKhoanListItemViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Quản lý tài khoản</h1>
+    <a asp-action="Create" class="btn btn-primary">Thêm tài khoản</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tên đăng nhập, họ tên hoặc email" />
+    </div>
+    <div class="col-md-3">
+        <select name="vaiTro" class="form-select">
+            <option value="">Tất cả vai trò</option>
+            @foreach (var role in new[] { VaiTro.Admin, VaiTro.CanBoTuyenSinh, VaiTro.ThiSinh })
+            {
+                if ((string?)ViewBag.VaiTro == role)
+                {
+                    <option value="@role" selected>@role</option>
+                }
+                else
+                {
+                    <option value="@role">@role</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="trangThai" class="form-select">
+            <option value="">Tất cả trạng thái</option>
+            @if (ViewBag.TrangThai is true)
+            {
+                <option value="true" selected>Hoạt động</option>
+            }
+            else
+            {
+                <option value="true">Hoạt động</option>
+            }
+            @if (ViewBag.TrangThai is false)
+            {
+                <option value="false" selected>Đã khóa</option>
+            }
+            else
+            {
+                <option value="false">Đã khóa</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-outline-primary">Lọc</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Tên đăng nhập</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in Model)
+            {
+                <tr>
+                    <td>@account.TenDangNhap</td>
+                    <td>@account.HoTen</td>
+                    <td>@account.Email</td>
+                    <td>@account.VaiTro</td>
+                    <td>
+                        @if (account.TrangThai)
+                        {
+                            <span class="badge text-bg-success">Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-secondary">Đã khóa</span>
+                        }
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a asp-action="Details" asp-route-id="@account.MaTaiKhoan" class="btn btn-sm btn-outline-info">Chi tiết</a>
+                        <a asp-action="Edit" asp-route-id="@account.MaTaiKhoan" class="btn btn-sm btn-outline-primary">Sửa</a>
+                        <form asp-action="DoiTrangThai" asp-route-id="@account.MaTaiKhoan" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-outline-warning">@(account.TrangThai ? "Khóa" : "Mở khóa")</button>
+                        </form>
+                        <a asp-action="Delete" asp-route-id="@account.MaTaiKhoan" class="btn btn-sm btn-outline-danger">Xóa</a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6" class="text-center text-muted">Không có tài khoản phù hợp.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

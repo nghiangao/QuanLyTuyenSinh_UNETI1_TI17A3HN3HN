@@ -1,0 +1,43 @@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.TaiKhoanFormViewModel
+@{
+    var requirePassword = ViewData["RequirePassword"] as bool? == true;
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<input asp-for="MaTaiKhoan" type="hidden" />
+<div class="mb-3">
+    <label asp-for="TenDangNhap" class="form-label"></label>
+    <input asp-for="TenDangNhap" class="form-control" autocomplete="username" />
+    <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="HoTen" class="form-label"></label>
+    <input asp-for="HoTen" class="form-control" />
+    <span asp-validation-for="HoTen" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Email" class="form-label"></label>
+    <input asp-for="Email" class="form-control" type="email" autocomplete="email" />
+    <span asp-validation-for="Email" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="VaiTro" class="form-label"></label>
+    <select asp-for="VaiTro" asp-items="ViewBag.VaiTroList" class="form-select"></select>
+    <span asp-validation-for="VaiTro" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="MatKhau" class="form-label"></label>
+    <input asp-for="MatKhau" class="form-control" autocomplete="new-password" required="@(requirePassword ? "required" : null)" />
+    @if (requirePassword)
+    {
+        <span asp-validation-for="MatKhau" class="text-danger"></span>
+    }
+    else
+    {
+        <div class="form-text">Để trống nếu không muốn thay đổi mật khẩu.</div>
+    }
+</div>
+<div class="form-check mb-3">
+    <input asp-for="TrangThai" class="form-check-input" />
+    <label asp-for="TrangThai" class="form-check-label"></label>
+</div>
