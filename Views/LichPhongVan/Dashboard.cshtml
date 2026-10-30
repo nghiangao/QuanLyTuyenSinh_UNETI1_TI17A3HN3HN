@@ -8,119 +8,118 @@
 
 @{
     ViewData["Title"] = "Tổng quan tuyển sinh";
-    Layout = "_LayoutModule5";
 }
 
-<div class="m5-breadcrumb">
+<div class="ui-breadcrumb">
     <span>Điều hành tuyển sinh &nbsp;/&nbsp; Module 5 &nbsp;/&nbsp; Tổng quan tuyển sinh</span>
 </div>
 
-<div class="m5-pagehead">
-    <div class="m5-pagehead__text">
+<div class="ui-pagehead">
+    <div class="ui-pagehead__text">
         <h1>Tổng quan tuyển sinh</h1>
         <p>Theo dõi hồ sơ, lịch phỏng vấn và tiến độ xét tuyển trong một không gian.</p>
     </div>
-    <a asp-action="ThongKe" class="m5-btn m5-btn--outline">
-        <partial name="_M5Icon" model='("chart-no-axes-combined", 16)' />
+    <a asp-action="ThongKe" class="ui-btn ui-btn--outline">
+        <partial name="_Icon" model='("chart-no-axes-combined", 16)' />
         <span>Xem thống kê</span>
     </a>
-    <a asp-action="Index" class="m5-btn m5-btn--primary">
-        <partial name="_M5Icon" model='("calendar-days", 16)' />
+    <a asp-action="Index" class="ui-btn ui-btn--primary">
+        <partial name="_Icon" model='("calendar-days", 16)' />
         <span>Quản lý lịch phỏng vấn</span>
     </a>
 </div>
 
 @* ===== 4 chỉ số trọng tâm: (5) Hồ sơ, (4) Thí sinh, (8) Lịch PV sắp tới, (9) Trúng tuyển ===== *@
-<section class="m5-grid m5-grid--4">
-    <article class="m5-kpi m5-kpi--primary">
-        <div class="m5-kpi__head">
-            <span class="m5-kpi__label">Tổng số hồ sơ</span>
-            <partial name="_M5Icon" model='("files", 19)' />
+<section class="ui-grid ui-grid--4">
+    <article class="ui-kpi ui-kpi--primary">
+        <div class="ui-kpi__head">
+            <span class="ui-kpi__label">Tổng số hồ sơ</span>
+            <partial name="_Icon" model='("files", 19)' />
         </div>
-        <div class="m5-kpi__value">@Model.TongSoHoSo</div>
-        <div class="m5-kpi__note">Tổng số nguyện vọng đã nộp</div>
+        <div class="ui-kpi__value">@Model.TongSoHoSo</div>
+        <div class="ui-kpi__note">Tổng số nguyện vọng đã nộp</div>
     </article>
 
-    <article class="m5-kpi">
-        <div class="m5-kpi__head">
-            <span class="m5-kpi__label">Tổng số thí sinh</span>
-            <partial name="_M5Icon" model='("users", 19)' />
+    <article class="ui-kpi">
+        <div class="ui-kpi__head">
+            <span class="ui-kpi__label">Tổng số thí sinh</span>
+            <partial name="_Icon" model='("users", 19)' />
         </div>
-        <div class="m5-kpi__value">@Model.TongSoThiSinh</div>
-        <div class="m5-kpi__note">Thí sinh đã tạo hồ sơ cá nhân</div>
+        <div class="ui-kpi__value">@Model.TongSoThiSinh</div>
+        <div class="ui-kpi__note">Thí sinh đã tạo hồ sơ cá nhân</div>
     </article>
 
-    <article class="m5-kpi">
-        <div class="m5-kpi__head">
-            <span class="m5-kpi__label">Lịch phỏng vấn sắp tới</span>
-            <partial name="_M5Icon" model='("calendar-days", 19)' />
+    <article class="ui-kpi">
+        <div class="ui-kpi__head">
+            <span class="ui-kpi__label">Lịch phỏng vấn sắp tới</span>
+            <partial name="_Icon" model='("calendar-days", 19)' />
         </div>
-        <div class="m5-kpi__value">@Model.SoLichPhongVanSapToi</div>
-        <div class="m5-kpi__note">Đã lên lịch, chưa diễn ra</div>
+        <div class="ui-kpi__value">@Model.SoLichPhongVanSapToi</div>
+        <div class="ui-kpi__note">Đã lên lịch, chưa diễn ra</div>
     </article>
 
-    <article class="m5-kpi">
-        <div class="m5-kpi__head">
-            <span class="m5-kpi__label">Hồ sơ trúng tuyển</span>
-            <partial name="_M5Icon" model='("badge-check", 19)' />
+    <article class="ui-kpi">
+        <div class="ui-kpi__head">
+            <span class="ui-kpi__label">Hồ sơ trúng tuyển</span>
+            <partial name="_Icon" model='("badge-check", 19)' />
         </div>
-        <div class="m5-kpi__value">@Model.SoHoSoTrungTuyen</div>
-        <div class="m5-kpi__note">Đạt kết quả trúng tuyển chính thức</div>
+        <div class="ui-kpi__value">@Model.SoHoSoTrungTuyen</div>
+        <div class="ui-kpi__note">Đạt kết quả trúng tuyển chính thức</div>
     </article>
 </section>
 
 @* ===== 5 chỉ số vận hành: (1) Khoa, (2) Ngành, (3) Ngành đang tuyển, (6) Chờ duyệt, (7) Đạt sơ tuyển ===== *@
-<section class="m5-grid m5-grid--5">
-    <article class="m5-metric">
-        <span class="m5-metric__label">Tổng số khoa</span>
-        <span class="m5-metric__value">@Model.TongSoKhoa</span>
-        <span class="m5-metric__note">Đơn vị đào tạo</span>
+<section class="ui-grid ui-grid--5">
+    <article class="ui-metric">
+        <span class="ui-metric__label">Tổng số khoa</span>
+        <span class="ui-metric__value">@Model.TongSoKhoa</span>
+        <span class="ui-metric__note">Đơn vị đào tạo</span>
     </article>
-    <article class="m5-metric">
-        <span class="m5-metric__label">Tổng số ngành tuyển sinh</span>
-        <span class="m5-metric__value">@Model.TongSoNganh</span>
-        <span class="m5-metric__note">Toàn bộ các ngành mở tuyển sinh</span>
+    <article class="ui-metric">
+        <span class="ui-metric__label">Tổng số ngành tuyển sinh</span>
+        <span class="ui-metric__value">@Model.TongSoNganh</span>
+        <span class="ui-metric__note">Toàn bộ các ngành mở tuyển sinh</span>
     </article>
-    <article class="m5-metric">
-        <span class="m5-metric__label">Ngành đang tuyển</span>
-        <span class="m5-metric__value">@Model.SoNganhDangTuyen</span>
-        <span class="m5-metric__note">Đang nhận hồ sơ trực tuyến</span>
+    <article class="ui-metric">
+        <span class="ui-metric__label">Ngành đang tuyển</span>
+        <span class="ui-metric__value">@Model.SoNganhDangTuyen</span>
+        <span class="ui-metric__note">Đang nhận hồ sơ trực tuyến</span>
     </article>
-    <article class="m5-metric">
-        <span class="m5-metric__label">Hồ sơ chờ duyệt</span>
-        <span class="m5-metric__value">@Model.SoHoSoChoDuyet</span>
-        <span class="m5-metric__note">Cần kiểm tra sơ tuyển</span>
+    <article class="ui-metric">
+        <span class="ui-metric__label">Hồ sơ chờ duyệt</span>
+        <span class="ui-metric__value">@Model.SoHoSoChoDuyet</span>
+        <span class="ui-metric__note">Cần kiểm tra sơ tuyển</span>
     </article>
-    <article class="m5-metric">
-        <span class="m5-metric__label">Hồ sơ đạt sơ tuyển</span>
-        <span class="m5-metric__value">@Model.SoHoSoDatSoTuyen</span>
-        <span class="m5-metric__note">Đủ điều kiện lập lịch phỏng vấn</span>
+    <article class="ui-metric">
+        <span class="ui-metric__label">Hồ sơ đạt sơ tuyển</span>
+        <span class="ui-metric__value">@Model.SoHoSoDatSoTuyen</span>
+        <span class="ui-metric__note">Đủ điều kiện lập lịch phỏng vấn</span>
     </article>
 </section>
 
 @* ===== Lối tắt theo quy trình nghiệp vụ ===== *@
-<article class="m5-card">
-    <header class="m5-card__head">
+<article class="ui-card">
+    <header class="ui-card__head">
         <div>
             <h2>Lối tắt theo quy trình nghiệp vụ</h2>
             <p>Chuyển nhanh đến các thao tác thường dùng của cán bộ tuyển sinh</p>
         </div>
     </header>
-    <div class="m5-shortcuts">
-        <a asp-action="Create" class="m5-shortcut">
-            <partial name="_M5Icon" model='("calendar", 18)' />
+    <div class="ui-shortcuts">
+        <a asp-action="Create" class="ui-shortcut">
+            <partial name="_Icon" model='("calendar", 18)' />
             <span>Lập lịch phỏng vấn mới</span>
         </a>
-        <a asp-action="Index" asp-route-trangThai="@TrangThaiLich.DaLenLich" class="m5-shortcut">
-            <partial name="_M5Icon" model='("clipboard-check", 18)' />
+        <a asp-action="Index" asp-route-trangThai="@TrangThaiLich.DaLenLich" class="ui-shortcut">
+            <partial name="_Icon" model='("clipboard-check", 18)' />
             <span>Lịch cần phỏng vấn</span>
         </a>
-        <a asp-action="ThongKe" class="m5-shortcut">
-            <partial name="_M5Icon" model='("chart-no-axes-combined", 18)' />
+        <a asp-action="ThongKe" class="ui-shortcut">
+            <partial name="_Icon" model='("chart-no-axes-combined", 18)' />
             <span>Báo cáo phân tích LINQ</span>
         </a>
-        <a asp-action="LichCuaToi" class="m5-shortcut">
-            <partial name="_M5Icon" model='("users", 18)' />
+        <a asp-action="LichCuaToi" class="ui-shortcut">
+            <partial name="_Icon" model='("users", 18)' />
             <span>Màn tra cứu của thí sinh</span>
         </a>
     </div>

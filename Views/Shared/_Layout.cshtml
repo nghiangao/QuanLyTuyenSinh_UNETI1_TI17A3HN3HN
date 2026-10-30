@@ -1,151 +1,170 @@
-@* Họ và tên: Đào Văn Khánh | Mã sinh viên: 23103100125 | Nội dung thực hiện: Module 2.7 - Liên kết danh mục ngành tuyển sinh công khai. *@
+@* Họ và tên: Đào Văn Khánh | Mã sinh viên: 23103100125 | Nội dung thực hiện: Module 2.7 - Liên kết danh mục ngành tuyển sinh công khai. (Layout gốc)
+   Layout dùng chung toàn hệ thống: header + sidebar theo vai trò (thiết kế Figma). *@
 @using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act  = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    var isAuth    = User.Identity?.IsAuthenticated == true;
+    var role      = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    bool isAdmin  = User.IsInRole(VaiTro.Admin);
+    bool isStaff  = isAdmin || User.IsInRole(VaiTro.CanBoTuyenSinh);
+    bool isStudent = User.IsInRole(VaiTro.ThiSinh);
+
+    var hoTen = User.Identity?.Name;
+    if (string.IsNullOrWhiteSpace(hoTen)) hoTen = "Người dùng";
+    var chuCai = string.Concat(hoTen.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(p => p[0]).TakeLast(2)).ToUpper();
+
+    bool Is(string c, string a) => ctrl == c && act == a;
+    bool Ctrl(string c) => ctrl == c;
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Quản Lý Tuyển Sinh UNETI</title>
-    <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ui.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm mb-3">
-            <div class="container-fluid px-3">
-                <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
-                    🎓 Tuyển Sinh UNETI
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="NganhTuyenSinh" asp-action="CongKhai">Ngành tuyển sinh</a>
-                        </li>
+<body class="ui-body">
+    <header class="ui-topbar">
+        <button type="button" class="ui-menu-btn" id="uiMenuBtn" aria-label="Mở menu">
+            <partial name="_Icon" model='("menu", 22)' />
+        </button>
 
-                        @* Menu dành cho Admin / Cán bộ tuyển sinh *@
-                        @if (User.IsInRole(VaiTro.Admin) || User.IsInRole(VaiTro.CanBoTuyenSinh))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="NganhTuyenSinh" asp-action="Index">Quản lý ngành (M2)</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ThiSinh" asp-action="Index">Quản lý thí sinh (M3)</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="HoSoXetTuyen" asp-action="Index">Hồ sơ xét tuyển (M4)</a>
-                            </li>
-                        }
+        <a class="ui-brand" asp-area="" asp-controller="Home" asp-action="Index">
+            <span class="ui-brand__logo"><partial name="_Icon" model='("graduation-cap", 24)' /></span>
+            <span class="ui-brand__text">
+                <span class="ui-brand__name">UNETI</span>
+                <span class="ui-brand__sub">QUẢN LÝ TUYỂN SINH</span>
+            </span>
+        </a>
 
-                        @* Menu dành riêng cho Admin *@
-                        @if (User.IsInRole(VaiTro.Admin))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Khoa" asp-action="Index">Khoa (M1)</a>
-                            </li>
-                        }
+        <div class="ui-topbar__school">Trường Đại học Kinh tế - Kỹ thuật Công nghiệp</div>
 
-                        @* Menu dành cho Thí sinh *@
-                        @if (User.IsInRole(VaiTro.ThiSinh))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ThiSinh" asp-action="ThongTinCaNhan">Hồ sơ cá nhân</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="HoSoThiSinh" asp-action="TheoDoi">Nguyện vọng của tôi</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="LichPhongVan" asp-action="LichCuaToi">Lịch PV & Kết quả</a>
-                            </li>
-                        }
+        <div class="ui-chip">
+            <partial name="_Icon" model='("calendar", 15)' />
+            <span>Đại học chính quy 2026</span>
+        </div>
 
-                        @* Menu Module 5: Lịch phỏng vấn & Thống kê *@
-                        @if (User.IsInRole(VaiTro.Admin) || User.IsInRole(VaiTro.CanBoTuyenSinh))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-primary fw-semibold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    📅 Lịch & Kết quả (M5)
-                                </a>
-                                <ul class="dropdown-menu shadow border-0">
-                                    <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Index">📋 Danh sách lịch phỏng vấn</a></li>
-                                    <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Create">➕ Lập lịch phỏng vấn</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="Dashboard">📊 Dashboard 9 chỉ số</a></li>
-                                    <li><a class="dropdown-item" asp-controller="LichPhongVan" asp-action="ThongKe">📈 Báo cáo thống kê LINQ</a></li>
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-
-                    @* Nút tra cứu nhanh *@
-                    @if (!User.IsInRole(VaiTro.Admin) && !User.IsInRole(VaiTro.CanBoTuyenSinh))
-                    {
-                        <ul class="navbar-nav me-2">
-                            <li class="nav-item">
-                                <a class="nav-link btn btn-outline-primary btn-sm px-3" asp-controller="LichPhongVan" asp-action="LichCuaToi">
-                                    🔍 Tra cứu kết quả
-                                </a>
-                            </li>
-                        </ul>
-                    }
-
-                    @* Thông tin đăng nhập / đăng xuất *@
-                    <ul class="navbar-nav align-items-center">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-                            var roleBadge = role == VaiTro.Admin ? "bg-danger"
-                                          : role == VaiTro.CanBoTuyenSinh ? "bg-primary"
-                                          : "bg-success";
-
-                            <li class="nav-item me-2">
-                                <span class="nav-link text-dark py-1">
-                                    👤 <strong>@User.Identity.Name</strong>
-                                    <span class="badge @roleBadge ms-1">@role</span>
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <form asp-controller="TaiKhoan" asp-action="DangXuat" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Đăng xuất</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="btn btn-primary btn-sm px-3 fw-semibold" asp-controller="TaiKhoan" asp-action="DangNhap">
-                                    🔑 Đăng nhập
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </div>
+        @if (isAuth)
+        {
+            <span class="ui-topbar__sep"></span>
+            <div class="ui-account">
+                <span class="ui-avatar">@chuCai</span>
+                <span class="ui-account__info">
+                    <span class="ui-account__name">@hoTen</span>
+                    <span class="ui-account__role">@role</span>
+                </span>
             </div>
-        </nav>
+            <form asp-controller="TaiKhoan" asp-action="DangXuat" method="post" class="ui-logout">
+                <button type="submit" class="ui-btn ui-btn--ghost">Đăng xuất</button>
+            </form>
+        }
+        else
+        {
+            <a class="ui-btn ui-btn--light" asp-controller="TaiKhoan" asp-action="DangNhap">Đăng nhập</a>
+        }
     </header>
 
-    <div class="container-fluid px-4">
-        <main role="main" class="pb-3">
+    <div class="ui-workspace">
+        <aside class="ui-sidebar" id="uiSidebar">
+            <div class="ui-sidebar__title">HỆ THỐNG TUYỂN SINH</div>
+
+            <a class="ui-nav ui-nav--general @(Ctrl("Home") ? "is-active" : "")" asp-controller="Home" asp-action="Index">
+                <partial name="_Icon" model='("layout-dashboard", 17)' /><span>Trang chủ</span>
+            </a>
+            <a class="ui-nav ui-nav--general @(Is("NganhTuyenSinh", "CongKhai") ? "is-active" : "")" asp-controller="NganhTuyenSinh" asp-action="CongKhai">
+                <partial name="_Icon" model='("graduation-cap", 17)' /><span>Ngành tuyển sinh</span>
+            </a>
+
+            @if (isStaff)
+            {
+                @if (isAdmin)
+                {
+                    <a class="ui-nav ui-nav--general @(Ctrl("Khoa") ? "is-active" : "")" asp-controller="Khoa" asp-action="Index">
+                        <partial name="_Icon" model='("building-2", 17)' /><span>Khoa (M1)</span>
+                    </a>
+                }
+                <a class="ui-nav ui-nav--general @(Is("NganhTuyenSinh", "Index") ? "is-active" : "")" asp-controller="NganhTuyenSinh" asp-action="Index">
+                    <partial name="_Icon" model='("graduation-cap", 17)' /><span>Quản lý ngành (M2)</span>
+                </a>
+                <a class="ui-nav ui-nav--general @(Ctrl("ThiSinh") ? "is-active" : "")" asp-controller="ThiSinh" asp-action="Index">
+                    <partial name="_Icon" model='("users", 17)' /><span>Quản lý thí sinh (M3)</span>
+                </a>
+                <a class="ui-nav ui-nav--general @(Ctrl("HoSoXetTuyen") ? "is-active" : "")" asp-controller="HoSoXetTuyen" asp-action="Index">
+                    <partial name="_Icon" model='("files", 17)' /><span>Hồ sơ xét tuyển (M4)</span>
+                </a>
+
+                <hr class="ui-sidebar__divider" />
+
+                <div class="ui-sidebar__module">
+                    <div class="ui-sidebar__module-title">PHỎNG VẤN & KẾT QUẢ</div>
+                    <a class="ui-nav ui-nav--module @(Is("LichPhongVan", "Dashboard") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="Dashboard">
+                        <partial name="_Icon" model='("chart-no-axes-combined", 18)' /><span>Tổng quan</span>
+                    </a>
+                    <a class="ui-nav ui-nav--module @(Is("LichPhongVan", "Index") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="Index">
+                        <partial name="_Icon" model='("calendar-days", 18)' /><span>Lịch phỏng vấn</span>
+                    </a>
+                    <a class="ui-nav ui-nav--module @(Is("LichPhongVan", "Create") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="Create">
+                        <partial name="_Icon" model='("plus", 18)' /><span>Lập lịch phỏng vấn</span>
+                    </a>
+                    <a class="ui-nav ui-nav--module @(Is("LichPhongVan", "ThongKe") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="ThongKe">
+                        <partial name="_Icon" model='("clipboard-check", 18)' /><span>Báo cáo thống kê</span>
+                    </a>
+                </div>
+            }
+            else if (isStudent)
+            {
+                <a class="ui-nav ui-nav--general @(Is("ThiSinh", "ThongTinCaNhan") ? "is-active" : "")" asp-controller="ThiSinh" asp-action="ThongTinCaNhan">
+                    <partial name="_Icon" model='("user", 17)' /><span>Hồ sơ cá nhân</span>
+                </a>
+                <a class="ui-nav ui-nav--general @(Ctrl("HoSoThiSinh") ? "is-active" : "")" asp-controller="HoSoThiSinh" asp-action="TheoDoi">
+                    <partial name="_Icon" model='("files", 17)' /><span>Nguyện vọng của tôi</span>
+                </a>
+                <a class="ui-nav ui-nav--general @(Is("LichPhongVan", "LichCuaToi") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="LichCuaToi">
+                    <partial name="_Icon" model='("calendar-days", 17)' /><span>Lịch PV &amp; Kết quả</span>
+                </a>
+            }
+            else
+            {
+                <a class="ui-nav ui-nav--general @(Is("LichPhongVan", "LichCuaToi") ? "is-active" : "")" asp-controller="LichPhongVan" asp-action="LichCuaToi">
+                    <partial name="_Icon" model='("search", 17)' /><span>Tra cứu kết quả</span>
+                </a>
+            }
+
+            <div class="ui-datanote">
+                <strong>Kỳ tuyển sinh 2026</strong>
+                <span>Dữ liệu tại<br />@DateTime.Now.ToString("dd/MM/yyyy · HH:mm") (GMT+7)</span>
+            </div>
+        </aside>
+
+        <main role="main" class="ui-page">
             @RenderBody()
+
+            <footer class="ui-pagefoot">
+                <span>&copy; 2026 - Nhóm 01 - Lớp TI17A3HN - Đề tài 21: Quản lý tuyển sinh và hồ sơ xét tuyển Đại học UNETI</span>
+                <span>Dữ liệu tại @DateTime.Now.ToString("dd/MM/yyyy, HH:mm")</span>
+            </footer>
         </main>
     </div>
 
-    <footer class="border-top footer text-muted bg-white py-3 mt-5">
-        <div class="container-fluid px-4 text-center">
-            &copy; 2026 - Nhóm 01 - Lớp TI17A3HN - Đề tài 21: Quản lý tuyển sinh và hồ sơ xét tuyển Đại học UNETI
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.getElementById('uiMenuBtn')?.addEventListener('click', function () {
+            document.body.classList.toggle('ui-menu-open');
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
