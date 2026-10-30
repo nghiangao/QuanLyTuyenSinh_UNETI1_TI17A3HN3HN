@@ -6,593 +6,411 @@
     2. Admin (Quản trị viên)
     3. Cán bộ tuyển sinh
     4. Thí sinh
+    (Giao diện mới đồng bộ theo thiết kế Figma)
 *@
 @model HomeDashboardViewModel
 
 @{
     ViewData["Title"] = "Trang chủ Tuyển Sinh UNETI";
+
+    string TenTrangThai(string s) => s switch
+    {
+        "ChoDuyet" => "Chờ duyệt",
+        "DatSoTuyen" => "Đạt sơ tuyển",
+        "KhongDatSoTuyen" => "Không đạt sơ tuyển",
+        "ChoPhongVan" => "Chờ phỏng vấn",
+        "DaPhongVan" => "Đã phỏng vấn",
+        "TrungTuyen" => "Trúng tuyển",
+        "KhongTrungTuyen" => "Không trúng tuyển",
+        _ => s
+    };
+    string MauTrangThai(string s) => s switch
+    {
+        "ChoDuyet" => "ui-pill--amber",
+        "DatSoTuyen" or "ChoPhongVan" => "ui-pill--blue",
+        "DaPhongVan" => "ui-pill--teal",
+        "TrungTuyen" => "ui-pill--green",
+        "KhongDatSoTuyen" or "KhongTrungTuyen" => "ui-pill--red",
+        _ => "ui-pill--muted"
+    };
 }
 
-@* =========================================================================
-   TRƯỜNG HỢP 1: KHÁCH VÃNG LAI (CHƯA ĐĂNG NHẬP)
-   ========================================================================= *@
 @if (!Model.IsAuthenticated)
 {
-    @* Hero Banner *@
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border border-primary border-opacity-25" 
-         style="background: linear-gradient(135deg, #eef4ff 0%, #ffffff 100%);">
-        <div class="container-fluid py-3">
-            <span class="badge bg-primary px-3 py-2 fs-6 mb-3">🎓 Cổng Tuyển Sinh Đại Học 2026</span>
-            <h1 class="display-5 fw-bold text-primary mb-3">Hệ Thống Quản Lý Tuyển Sinh & Hồ Sơ Xét Tuyển</h1>
-            <p class="col-md-9 fs-5 text-muted mb-4">
-                Chào mừng bạn đến với Cổng thông tin tuyển sinh trực tuyến trường Đại học Kinh tế - Kỹ thuật Công nghiệp (UNETI). 
-                Đăng ký tài khoản, nộp hồ sơ trực tuyến, theo dõi tiến độ sơ tuyển, lịch phỏng vấn và kết quả trúng tuyển nhanh chóng, minh bạch.
+    @* ===================== 1. KHÁCH VÃNG LAI ===================== *@
+    <section class="ui-hero">
+        <div class="ui-hero__text">
+            <span class="ui-pill ui-pill--teal">Cổng tuyển sinh đại học 2026</span>
+            <h1>Hệ thống quản lý tuyển sinh &amp; hồ sơ xét tuyển</h1>
+            <p>
+                Cổng thông tin tuyển sinh trực tuyến của Trường Đại học Kinh tế - Kỹ thuật Công nghiệp (UNETI).
+                Nộp hồ sơ, theo dõi sơ tuyển, lịch phỏng vấn và kết quả trúng tuyển nhanh chóng, minh bạch.
             </p>
-            <div class="d-flex flex-wrap gap-2">
-                <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="btn btn-primary btn-lg px-4 fw-semibold">
-                    🎓 Xem các ngành đang tuyển
+            <div class="ui-hero__actions">
+                <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="ui-btn ui-btn--light">
+                    <partial name="_Icon" model='("graduation-cap", 16)' /><span>Xem các ngành đang tuyển</span>
                 </a>
-                <a asp-controller="TaiKhoan" asp-action="DangNhap" class="btn btn-outline-primary btn-lg px-4 fw-semibold">
-                    🔑 Đăng nhập hệ thống
+                <a asp-controller="TaiKhoan" asp-action="DangNhap" class="ui-btn ui-btn--primary">
+                    <span>Đăng nhập hệ thống</span>
                 </a>
-                <a asp-controller="LichPhongVan" asp-action="LichCuaToi" class="btn btn-outline-secondary btn-lg px-4 fw-semibold">
-                    🔍 Tra cứu lịch & kết quả
+                <a asp-controller="LichPhongVan" asp-action="LichCuaToi" class="ui-btn ui-btn--ghost">
+                    <partial name="_Icon" model='("search", 16)' /><span>Tra cứu lịch &amp; kết quả</span>
                 </a>
             </div>
         </div>
-    </div>
+        <div class="ui-hero__stats">
+            <div><strong>@Model.TongSoNganhDangTuyen</strong><span>Ngành đang tuyển</span></div>
+            <div><strong>@Model.TongSoKhoa</strong><span>Khoa đào tạo</span></div>
+        </div>
+    </section>
 
-    @* 3 Thẻ tính năng nổi bật *@
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-primary border-4">
-                <div class="card-body text-center p-4">
-                    <div class="display-5 text-primary mb-3">🎓</div>
-                    <h5 class="fw-bold">Ngành Đào Tạo Đa Dạng</h5>
-                    <p class="text-muted small">
-                        Hơn @Model.TongSoNganhDangTuyen ngành đào tạo đang mở tuyển sinh thuộc @Model.TongSoKhoa khoa chuyên môn mũi nhọn của nhà trường.
-                    </p>
-                    <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="btn btn-sm btn-outline-primary">Xem ngành tuyển sinh →</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-success border-4">
-                <div class="card-body text-center p-4">
-                    <div class="display-5 text-success mb-3">📝</div>
-                    <h5 class="fw-bold">Nộp Hồ Sơ Trực Tuyến</h5>
-                    <p class="text-muted small">
-                        Khai báo hồ sơ thí sinh, chọn ngành học yêu thích và nộp hồ sơ xét tuyển trực tuyến mọi lúc, mọi nơi, không cần đến trực tiếp.
-                    </p>
-                    <a asp-controller="TaiKhoan" asp-action="DangNhap" class="btn btn-sm btn-outline-success">Đăng nhập để nộp hồ sơ →</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-info border-4">
-                <div class="card-body text-center p-4">
-                    <div class="display-5 text-info mb-3">🔍</div>
-                    <h5 class="fw-bold">Theo Dõi & Tra Cứu 24/7</h5>
-                    <p class="text-muted small">
-                        Dễ dàng theo dõi tiến độ sơ duyệt hồ sơ, xem lịch phỏng vấn trực tiếp/trực tuyến và nhận kết quả trúng tuyển tức thì.
-                    </p>
-                    <a asp-controller="LichPhongVan" asp-action="LichCuaToi" class="btn btn-sm btn-outline-info">Tra cứu kết quả ngay →</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="ui-grid ui-grid--3">
+        <article class="ui-feature">
+            <span class="ui-feature__icon"><partial name="_Icon" model='("graduation-cap", 22)' /></span>
+            <h3>Ngành đào tạo đa dạng</h3>
+            <p>Hơn @Model.TongSoNganhDangTuyen ngành đang mở tuyển sinh thuộc @Model.TongSoKhoa khoa chuyên môn của nhà trường.</p>
+            <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="ui-link">Xem ngành tuyển sinh →</a>
+        </article>
+        <article class="ui-feature">
+            <span class="ui-feature__icon"><partial name="_Icon" model='("files", 22)' /></span>
+            <h3>Nộp hồ sơ trực tuyến</h3>
+            <p>Khai báo hồ sơ thí sinh, chọn ngành và nộp hồ sơ xét tuyển mọi lúc, mọi nơi, không cần đến trực tiếp.</p>
+            <a asp-controller="TaiKhoan" asp-action="DangNhap" class="ui-link">Đăng nhập để nộp hồ sơ →</a>
+        </article>
+        <article class="ui-feature">
+            <span class="ui-feature__icon"><partial name="_Icon" model='("search", 22)' /></span>
+            <h3>Theo dõi &amp; tra cứu 24/7</h3>
+            <p>Theo dõi tiến độ sơ duyệt, xem lịch phỏng vấn trực tiếp/trực tuyến và nhận kết quả trúng tuyển.</p>
+            <a asp-controller="LichPhongVan" asp-action="LichCuaToi" class="ui-link">Tra cứu kết quả ngay →</a>
+        </article>
+    </section>
 
-    @* Danh sách ngành tiêu biểu đang tuyển *@
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <article class="ui-card">
+        <header class="ui-card__head">
             <div>
-                <h3 class="fw-bold text-dark mb-0">🔥 Các ngành đang nhận hồ sơ tuyển sinh</h3>
-                <p class="text-muted small mb-0">Đăng ký xét tuyển sớm để tăng cơ hội trúng tuyển</p>
+                <h2>Các ngành đang nhận hồ sơ tuyển sinh</h2>
+                <p>Đăng ký xét tuyển sớm để tăng cơ hội trúng tuyển</p>
             </div>
-            <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="btn btn-outline-primary btn-sm">Xem tất cả ngành →</a>
-        </div>
+            <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="ui-link">Xem tất cả ngành →</a>
+        </header>
 
-        <div class="row g-3">
-            @foreach (var ng in Model.NganhDangTuyen)
-            {
-                <div class="col-md-4 col-sm-6">
-                    <div class="card h-100 shadow-sm border-0 hover-shadow">
-                        <div class="card-body d-flex flex-column justify-content-between">
-                            <div>
-                                <span class="badge bg-success mb-2">Đang nhận hồ sơ</span>
-                                <h5 class="fw-bold text-primary mb-1">@ng.TenNganh</h5>
-                                <div class="text-muted small mb-2">🏛️ Khoa: @ng.Khoa?.TenKhoa</div>
-                                <div class="small mb-1"><strong>Chỉ tiêu:</strong> <span class="badge bg-light text-dark border">@ng.ChiTieu</span></div>
-                                <div class="small mb-1"><strong>Tổ hợp:</strong> @ng.ToHopXetTuyen</div>
-                                <div class="small mb-2"><strong>Điểm tối thiểu:</strong> <span class="text-danger fw-bold">@ng.DiemXetTuyenToiThieu.ToString("0.00")</span></div>
-                                <div class="small text-muted mb-3">⏳ Hạn nộp: <strong class="text-dark">@ng.HanNopHoSo.ToString("dd/MM/yyyy")</strong></div>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a asp-controller="NganhTuyenSinh" asp-action="Details" asp-route-id="@ng.MaNganh" class="btn btn-outline-primary btn-sm">
-                                    Chi tiết ngành
-                                </a>
-                            </div>
-                        </div>
+        @if (Model.NganhDangTuyen.Any())
+        {
+            <div class="ui-cards">
+                @foreach (var ng in Model.NganhDangTuyen)
+                {
+                    <div class="ui-mini">
+                        <span class="ui-pill ui-pill--green">Đang nhận hồ sơ</span>
+                        <strong>@ng.TenNganh</strong>
+                        <span>Khoa: @ng.Khoa?.TenKhoa</span>
+                        <span>Chỉ tiêu: <b>@ng.ChiTieu</b> · Tổ hợp: @ng.ToHopXetTuyen</span>
+                        <span>Điểm tối thiểu: <b class="ui-text-red">@ng.DiemXetTuyenToiThieu.ToString("0.00")</b></span>
+                        <span class="ui-mini__deadline">Hạn nộp: @ng.HanNopHoSo.ToString("dd/MM/yyyy")</span>
+                        <a asp-controller="NganhTuyenSinh" asp-action="Details" asp-route-id="@ng.MaNganh" class="ui-link">Chi tiết ngành →</a>
                     </div>
-                </div>
-            }
-        </div>
-    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="ui-empty">Hiện chưa có ngành nào trong thời gian nhận hồ sơ.</div>
+        }
+    </article>
 
-    @* Quy trình 5 bước tuyển sinh *@
-    <div class="card shadow-sm border-0 bg-white p-4 mb-4">
-        <h4 class="fw-bold text-center mb-4 text-primary">🚀 Quy Trình Tuyển Sinh 5 Bước Tại UNETI</h4>
-        <div class="row text-center g-3">
-            <div class="col">
-                <div class="p-3 bg-light rounded-3 h-100">
-                    <div class="fw-bold fs-3 text-primary mb-1">1</div>
-                    <div class="fw-semibold">Đăng nhập tài khoản</div>
-                    <small class="text-muted">Đăng nhập bằng tài khoản thí sinh được cấp hoặc đăng ký mới</small>
-                </div>
+    <article class="ui-card">
+        <header class="ui-card__head">
+            <div>
+                <h2>Quy trình tuyển sinh 5 bước tại UNETI</h2>
+                <p>Từ đăng nhập đến nhận kết quả trúng tuyển</p>
             </div>
-            <div class="col">
-                <div class="p-3 bg-light rounded-3 h-100">
-                    <div class="fw-bold fs-3 text-primary mb-1">2</div>
-                    <div class="fw-semibold">Khai báo hồ sơ</div>
-                    <small class="text-muted">Cập nhật thông tin cá nhân, trường THPT, điểm thi & tổ hợp</small>
-                </div>
-            </div>
-            <div class="col">
-                <div class="p-3 bg-light rounded-3 h-100">
-                    <div class="fw-bold fs-3 text-primary mb-1">3</div>
-                    <div class="fw-semibold">Nộp hồ sơ ngành</div>
-                    <small class="text-muted">Chọn ngành học còn hạn nộp và gửi nguyện vọng trực tuyến</small>
-                </div>
-            </div>
-            <div class="col">
-                <div class="p-3 bg-light rounded-3 h-100">
-                    <div class="fw-bold fs-3 text-primary mb-1">4</div>
-                    <div class="fw-semibold">Sơ tuyển & Phỏng vấn</div>
-                    <small class="text-muted">Cán bộ duyệt sơ tuyển và xếp lịch phỏng vấn (nếu có)</small>
-                </div>
-            </div>
-            <div class="col">
-                <div class="p-3 bg-light rounded-3 h-100">
-                    <div class="fw-bold fs-3 text-success mb-1">5</div>
-                    <div class="fw-semibold text-success">Nhận kết quả</div>
-                    <small class="text-muted">Tra cứu kết quả trúng tuyển và hoàn thiện thủ tục nhập học</small>
-                </div>
-            </div>
+        </header>
+        <div class="ui-steps">
+            <div class="ui-step"><b>1</b><strong>Đăng nhập tài khoản</strong><span>Dùng tài khoản thí sinh được cấp hoặc đăng ký mới</span></div>
+            <div class="ui-step"><b>2</b><strong>Khai báo hồ sơ</strong><span>Cập nhật thông tin cá nhân, trường THPT, điểm thi và tổ hợp</span></div>
+            <div class="ui-step"><b>3</b><strong>Nộp hồ sơ ngành</strong><span>Chọn ngành còn hạn nộp và gửi nguyện vọng trực tuyến</span></div>
+            <div class="ui-step"><b>4</b><strong>Sơ tuyển &amp; phỏng vấn</strong><span>Cán bộ duyệt sơ tuyển và xếp lịch phỏng vấn (nếu có)</span></div>
+            <div class="ui-step ui-step--last"><b>5</b><strong>Nhận kết quả</strong><span>Tra cứu kết quả trúng tuyển và hoàn thiện thủ tục nhập học</span></div>
         </div>
-    </div>
+    </article>
 }
-
-@* =========================================================================
-   TRƯỜNG HỢP 2: QUẢN TRỊ VIÊN (ADMIN)
-   ========================================================================= *@
 else if (Model.VaiTro == VaiTro.Admin)
 {
-    @* Welcome Header *@
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold text-dark mb-0">Bàn Làm Việc Quản Trị Hệ Thống</h2>
-                <span class="badge bg-danger fs-6">Admin</span>
-            </div>
-            <p class="text-muted mb-0 mt-1">Xin chào, <strong>@Model.HoTen</strong>! Bạn có toàn quyền quản trị danh mục, phân quyền và giám sát toàn hệ thống.</p>
+    @* ===================== 2. QUẢN TRỊ VIÊN ===================== *@
+    <div class="ui-breadcrumb"><span>Trang chủ &nbsp;/&nbsp; Bàn làm việc quản trị</span></div>
+
+    <div class="ui-pagehead">
+        <div class="ui-pagehead__text">
+            <h1>Bàn làm việc quản trị hệ thống <span class="ui-pill ui-pill--red">Admin</span></h1>
+            <p>Xin chào, <strong>@Model.HoTen</strong>! Bạn có toàn quyền quản trị danh mục, phân quyền và giám sát toàn hệ thống.</p>
         </div>
-        <div>
-            <a asp-controller="LichPhongVan" asp-action="Dashboard" class="btn btn-primary me-2">
-                📊 Dashboard 9 chỉ số
+        <a asp-controller="LichPhongVan" asp-action="ThongKe" class="ui-btn ui-btn--outline">
+            <partial name="_Icon" model='("clipboard-check", 16)' /><span>Báo cáo thống kê LINQ</span>
+        </a>
+        <a asp-controller="LichPhongVan" asp-action="Dashboard" class="ui-btn ui-btn--primary">
+            <partial name="_Icon" model='("chart-no-axes-combined", 16)' /><span>Dashboard 9 chỉ số</span>
+        </a>
+    </div>
+
+    <section class="ui-grid ui-grid--4">
+        <article class="ui-kpi ui-kpi--primary">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Tổng hồ sơ xét tuyển</span><partial name="_Icon" model='("files", 19)' /></div>
+            <div class="ui-kpi__value">@Model.TongSoHoSo</div>
+            <div class="ui-kpi__note">Toàn bộ nguyện vọng nộp</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Tổng thí sinh</span><partial name="_Icon" model='("users", 19)' /></div>
+            <div class="ui-kpi__value">@Model.TongSoThiSinh</div>
+            <div class="ui-kpi__note">Đã tạo tài khoản/hồ sơ</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Ngành đang tuyển</span><partial name="_Icon" model='("graduation-cap", 19)' /></div>
+            <div class="ui-kpi__value">@Model.TongSoNganhDangTuyen</div>
+            <div class="ui-kpi__note">Đang mở cổng nhận hồ sơ</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Lịch PV sắp tới</span><partial name="_Icon" model='("calendar-days", 19)' /></div>
+            <div class="ui-kpi__value">@Model.SoLichPhongVanSapToi</div>
+            <div class="ui-kpi__note">Đã lên lịch, chưa diễn ra</div>
+        </article>
+    </section>
+
+    <article class="ui-card">
+        <header class="ui-card__head">
+            <div>
+                <h2>Trung tâm điều hành các phân hệ</h2>
+                <p>Truy cập nhanh 6 module của hệ thống</p>
+            </div>
+        </header>
+        <div class="ui-modules">
+            <a asp-controller="Khoa" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("building-2", 20)' /></span>
+                <strong>Module 1: Khoa &amp; Tài khoản</strong>
+                <span>Quản lý thêm, sửa, xóa khoa chuyên môn; kiểm soát ràng buộc khoa đang có ngành tuyển sinh.</span>
             </a>
-            <a asp-controller="LichPhongVan" asp-action="ThongKe" class="btn btn-outline-primary">
-                📈 Báo cáo thống kê LINQ
+            <a asp-controller="NganhTuyenSinh" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("graduation-cap", 20)' /></span>
+                <strong>Module 2: Ngành tuyển sinh</strong>
+                <span>Quản lý ngành, chỉ tiêu, tổ hợp xét tuyển, hạn nộp hồ sơ; tìm kiếm và phân trang.</span>
+            </a>
+            <a asp-controller="ThiSinh" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("users", 20)' /></span>
+                <strong>Module 3: Quản lý thí sinh</strong>
+                <span>Giám sát danh sách thí sinh, điểm thi THPT, tổ hợp và thành tích.</span>
+            </a>
+            <a asp-controller="HoSoXetTuyen" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("files", 20)' /></span>
+                <strong>Module 4: Sơ tuyển hồ sơ</strong>
+                <span>Thẩm định sơ tuyển (Đạt / Không đạt), cập nhật nhận xét và cảnh báo vượt chỉ tiêu.</span>
+            </a>
+            <a asp-controller="LichPhongVan" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("calendar-days", 20)' /></span>
+                <strong>Module 5: Lịch &amp; Kết quả</strong>
+                <span>Lập lịch phỏng vấn (chống trùng lịch), ghi nhận điểm 0-100, xác nhận trúng tuyển.</span>
+            </a>
+            <a asp-controller="LichPhongVan" asp-action="Dashboard" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("chart-no-axes-combined", 20)' /></span>
+                <strong>M5.5 &amp; M5.6: Báo cáo LINQ</strong>
+                <span>Dashboard 9 chỉ số tuyển sinh và 10 chuyên đề thống kê phân tích bằng LINQ.</span>
             </a>
         </div>
-    </div>
-
-    @* 4 Thẻ chỉ số tổng quan nhanh *@
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-primary border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Tổng Thí Sinh</div>
-                    <div class="fs-2 fw-bold text-primary mt-1">@Model.TongSoThiSinh</div>
-                    <small class="text-muted">Đã tạo tài khoản/hồ sơ</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-info border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Tổng Hồ Sơ Xét Tuyển</div>
-                    <div class="fs-2 fw-bold text-info mt-1">@Model.TongSoHoSo</div>
-                    <small class="text-muted">Toàn bộ nguyện vọng nộp</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-success border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Ngành Đang Tuyển</div>
-                    <div class="fs-2 fw-bold text-success mt-1">@Model.TongSoNganhDangTuyen</div>
-                    <small class="text-muted">Đang mở cổng nhận hồ sơ</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-warning border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Lịch PV Sắp Tới</div>
-                    <div class="fs-2 fw-bold text-warning mt-1">@Model.SoLichPhongVanSapToi</div>
-                    <small class="text-muted">Đã lên lịch, chưa diễn ra</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @* Hub quản lý các phân hệ Module *@
-    <h4 class="fw-bold mb-3 text-dark">🚀 Trung Tâm Điều Hành Các Phân Hệ (Modules)</h4>
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 fs-3 me-3">🏛️</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Module 1: Khoa & Tài Khoản</h5>
-                            <small class="text-muted">Quản trị danh mục khoa đào tạo</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Quản lý thêm, sửa, xóa các khoa chuyên môn; kiểm soát ràng buộc khoa đang có ngành tuyển sinh.</p>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Khoa" asp-action="Index" class="btn btn-outline-primary btn-sm">Quản lý Khoa đào tạo →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-info bg-opacity-10 text-info rounded-3 fs-3 me-3">🎓</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Module 2: Ngành Tuyển Sinh</h5>
-                            <small class="text-muted">Chỉ tiêu, tổ hợp & phân trang</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Quản lý danh sách ngành, chỉ tiêu tuyển sinh, tổ hợp xét tuyển, hạn nộp hồ sơ, tìm kiếm & phân trang LINQ.</p>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="NganhTuyenSinh" asp-action="Index" class="btn btn-outline-info btn-sm">Quản lý Ngành tuyển sinh →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-secondary bg-opacity-10 text-secondary rounded-3 fs-3 me-3">👥</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Module 3: Quản Lý Thí Sinh</h5>
-                            <small class="text-muted">Hồ sơ cá nhân & thông tin THPT</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Giám sát danh sách toàn bộ thí sinh đăng ký trong hệ thống, điểm thi THPT, tổ hợp và thành tích.</p>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="ThiSinh" asp-action="Index" class="btn btn-outline-secondary btn-sm">Danh sách thí sinh →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-3 fs-3 me-3">📁</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Module 4: Sơ Tuyển Hồ Sơ</h5>
-                            <small class="text-muted">Duyệt hồ sơ & kiểm soát chỉ tiêu</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Tiếp nhận hồ sơ xét tuyển, thẩm định sơ tuyển (Đạt / Không đạt), cập nhật nhận xét và cảnh báo vượt chỉ tiêu.</p>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="HoSoXetTuyen" asp-action="Index" class="btn btn-outline-warning btn-sm">Xử lý sơ tuyển hồ sơ →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 fs-3 me-3">📅</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Module 5: Lịch & Kết Quả</h5>
-                            <small class="text-muted">Lập lịch phỏng vấn & Xét trúng tuyển</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Lập lịch phỏng vấn (chống trùng lịch), ghi nhận điểm đánh giá 0-100, xác nhận trúng tuyển/không trúng tuyển.</p>
-                    <div class="d-grid gap-2">
-                        <a asp-controller="LichPhongVan" asp-action="Index" class="btn btn-outline-success btn-sm">Quản lý Lịch phỏng vấn →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-0 hover-shadow">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 fs-3 me-3">📊</div>
-                        <div>
-                            <h5 class="fw-bold mb-0">M5.5 & M5.6: Báo Cáo LINQ</h5>
-                            <small class="text-muted">Dashboard 9 chỉ số & 10 báo cáo</small>
-                        </div>
-                    </div>
-                    <p class="text-muted small mb-3">Bảng điều khiển 9 chỉ số tuyển sinh theo thời gian thực và 10 chuyên đề thống kê phân tích chuyên sâu bằng LINQ.</p>
-                    <div class="d-flex gap-2">
-                        <a asp-controller="LichPhongVan" asp-action="Dashboard" class="btn btn-outline-primary btn-sm flex-fill">Dashboard</a>
-                        <a asp-controller="LichPhongVan" asp-action="ThongKe" class="btn btn-outline-success btn-sm flex-fill">Thống kê LINQ</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </article>
 }
-
-@* =========================================================================
-   TRƯỜNG HỢP 3: CÁN BỘ TUYỂN SINH
-   ========================================================================= *@
 else if (Model.VaiTro == VaiTro.CanBoTuyenSinh || Model.VaiTro == VaiTro.CanBo)
 {
-    @* Welcome Header *@
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold text-dark mb-0">Bàn Làm Việc Cán Bộ Tuyển Sinh</h2>
-                <span class="badge bg-primary fs-6">Cán bộ tuyển sinh</span>
-            </div>
-            <p class="text-muted mb-0 mt-1">Xin chào, <strong>@Model.HoTen</strong>! Hãy theo dõi và xử lý các hồ sơ xét tuyển và lịch phỏng vấn hôm nay.</p>
+    @* ===================== 3. CÁN BỘ TUYỂN SINH ===================== *@
+    <div class="ui-breadcrumb"><span>Trang chủ &nbsp;/&nbsp; Bàn làm việc cán bộ tuyển sinh</span></div>
+
+    <div class="ui-pagehead">
+        <div class="ui-pagehead__text">
+            <h1>Bàn làm việc cán bộ tuyển sinh <span class="ui-pill ui-pill--teal">Cán bộ</span></h1>
+            <p>Xin chào, <strong>@Model.HoTen</strong>! Hãy theo dõi và xử lý các hồ sơ xét tuyển và lịch phỏng vấn hôm nay.</p>
         </div>
-        <div>
-            <a asp-controller="HoSoXetTuyen" asp-action="Index" class="btn btn-warning me-2">
-                ⏳ Duyệt hồ sơ sơ tuyển
-            </a>
-            <a asp-controller="LichPhongVan" asp-action="Create" class="btn btn-primary">
-                ➕ Lập lịch phỏng vấn mới
-            </a>
-        </div>
+        <a asp-controller="HoSoXetTuyen" asp-action="Index" class="ui-btn ui-btn--outline">
+            <partial name="_Icon" model='("files", 16)' /><span>Duyệt hồ sơ sơ tuyển</span>
+        </a>
+        <a asp-controller="LichPhongVan" asp-action="Create" class="ui-btn ui-btn--primary">
+            <partial name="_Icon" model='("plus", 16)' /><span>Lập lịch phỏng vấn mới</span>
+        </a>
     </div>
 
-    @* 4 Thẻ chỉ số tiến độ công việc *@
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-warning border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Hồ Sơ Chờ Duyệt</div>
-                    <div class="fs-2 fw-bold text-warning mt-1">@Model.SoHoSoChoDuyet</div>
-                    <small class="text-muted">Cần sơ tuyển ngay</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-primary border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Hồ Sơ Đạt Sơ Tuyển</div>
-                    <div class="fs-2 fw-bold text-primary mt-1">@Model.SoHoSoDatSoTuyen</div>
-                    <small class="text-muted">Sẵn sàng lập lịch phỏng vấn</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-info border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Lịch PV Sắp Tới</div>
-                    <div class="fs-2 fw-bold text-info mt-1">@Model.SoLichPhongVanSapToi</div>
-                    <small class="text-muted">Lịch chưa diễn ra</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-success border-4">
-                <div class="card-body">
-                    <div class="text-muted small fw-semibold text-uppercase">Hồ Sơ Trúng Tuyển</div>
-                    <div class="fs-2 fw-bold text-success mt-1">@Model.SoHoSoTrungTuyen</div>
-                    <small class="text-muted">Đã ghi nhận kết quả</small>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="ui-grid ui-grid--4">
+        <article class="ui-kpi ui-kpi--primary">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Hồ sơ chờ duyệt</span><partial name="_Icon" model='("files", 19)' /></div>
+            <div class="ui-kpi__value">@Model.SoHoSoChoDuyet</div>
+            <div class="ui-kpi__note">Cần sơ tuyển ngay</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Hồ sơ đạt sơ tuyển</span><partial name="_Icon" model='("clipboard-check", 19)' /></div>
+            <div class="ui-kpi__value">@Model.SoHoSoDatSoTuyen</div>
+            <div class="ui-kpi__note">Sẵn sàng lập lịch phỏng vấn</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Lịch PV sắp tới</span><partial name="_Icon" model='("calendar-days", 19)' /></div>
+            <div class="ui-kpi__value">@Model.SoLichPhongVanSapToi</div>
+            <div class="ui-kpi__note">Lịch chưa diễn ra</div>
+        </article>
+        <article class="ui-kpi">
+            <div class="ui-kpi__head"><span class="ui-kpi__label">Hồ sơ trúng tuyển</span><partial name="_Icon" model='("badge-check", 19)' /></div>
+            <div class="ui-kpi__value">@Model.SoHoSoTrungTuyen</div>
+            <div class="ui-kpi__note">Đã ghi nhận kết quả</div>
+        </article>
+    </section>
 
-    @* Lối tắt tác vụ nhanh của Cán bộ *@
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white fw-bold py-3">
-            📋 Các tác vụ xử lý chính trong ngày
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="p-3 border rounded bg-light">
-                        <h6 class="fw-bold text-warning mb-2">1. Tiếp nhận & Duyệt sơ tuyển</h6>
-                        <p class="small text-muted mb-3">Kiểm tra thông tin thí sinh, đối chiếu tổ hợp môn và đánh giá Đạt / Không đạt sơ tuyển.</p>
-                        <a asp-controller="HoSoXetTuyen" asp-action="Index" class="btn btn-sm btn-outline-warning w-100">Vào duyệt hồ sơ (M4)</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="p-3 border rounded bg-light">
-                        <h6 class="fw-bold text-primary mb-2">2. Sắp xếp lịch phỏng vấn</h6>
-                        <p class="small text-muted mb-3">Lập lịch phỏng vấn cho thí sinh đã đạt sơ tuyển, kiểm tra không bị trùng lịch thí sinh & người phỏng vấn.</p>
-                        <a asp-controller="LichPhongVan" asp-action="Create" class="btn btn-sm btn-outline-primary w-100">Lập lịch mới (M5)</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="p-3 border rounded bg-light">
-                        <h6 class="fw-bold text-success mb-2">3. Hoàn thành & Nhập kết quả</h6>
-                        <p class="small text-muted mb-3">Đánh dấu lịch phỏng vấn đã diễn ra, nhập điểm đánh giá (0-100) và phê duyệt kết quả trúng tuyển.</p>
-                        <a asp-controller="LichPhongVan" asp-action="Index" class="btn btn-sm btn-outline-success w-100">Danh sách lịch phỏng vấn (M5)</a>
-                    </div>
-                </div>
+    <article class="ui-card">
+        <header class="ui-card__head">
+            <div>
+                <h2>Các tác vụ xử lý chính trong ngày</h2>
+                <p>Theo thứ tự quy trình nghiệp vụ</p>
             </div>
+        </header>
+        <div class="ui-modules ui-modules--3">
+            <a asp-controller="HoSoXetTuyen" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("files", 20)' /></span>
+                <strong>1. Tiếp nhận &amp; duyệt sơ tuyển</strong>
+                <span>Kiểm tra thông tin thí sinh, đối chiếu tổ hợp môn và đánh giá Đạt / Không đạt sơ tuyển (M4).</span>
+            </a>
+            <a asp-controller="LichPhongVan" asp-action="Create" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("calendar-days", 20)' /></span>
+                <strong>2. Sắp xếp lịch phỏng vấn</strong>
+                <span>Lập lịch cho thí sinh đã đạt sơ tuyển, kiểm tra không trùng lịch thí sinh và người phỏng vấn (M5).</span>
+            </a>
+            <a asp-controller="LichPhongVan" asp-action="Index" class="ui-module">
+                <span class="ui-module__icon"><partial name="_Icon" model='("badge-check", 20)' /></span>
+                <strong>3. Hoàn thành &amp; nhập kết quả</strong>
+                <span>Đánh dấu lịch đã diễn ra, nhập điểm đánh giá (0-100) và phê duyệt kết quả trúng tuyển (M5).</span>
+            </a>
         </div>
-    </div>
+    </article>
 }
-
-@* =========================================================================
-   TRƯỜNG HỢP 4: THÍ SINH
-   ========================================================================= *@
 else if (Model.VaiTro == VaiTro.ThiSinh)
 {
-    @* Welcome Header Thí sinh *@
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-        <div>
-            <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold text-dark mb-0">Cổng Thông Tin Thí Sinh</h2>
-                <span class="badge bg-success fs-6">Thí sinh</span>
-            </div>
-            <p class="text-muted mb-0 mt-1">Xin chào, <strong>@Model.HoTen</strong>! Theo dõi nguyện vọng xét tuyển và lịch phỏng vấn của bạn tại đây.</p>
+    @* ===================== 4. THÍ SINH ===================== *@
+    <div class="ui-breadcrumb"><span>Trang chủ &nbsp;/&nbsp; Cổng thông tin thí sinh</span></div>
+
+    <div class="ui-pagehead">
+        <div class="ui-pagehead__text">
+            <h1>Cổng thông tin thí sinh <span class="ui-pill ui-pill--green">Thí sinh</span></h1>
+            <p>Xin chào, <strong>@Model.HoTen</strong>! Theo dõi nguyện vọng xét tuyển và lịch phỏng vấn của bạn tại đây.</p>
         </div>
-        <div>
-            <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="btn btn-primary me-2">
-                🎓 Chọn ngành & Nộp hồ sơ mới
-            </a>
-            <a asp-controller="ThiSinh" asp-action="ThongTinCaNhan" class="btn btn-outline-secondary">
-                👤 Cập nhật thông tin cá nhân
-            </a>
-        </div>
+        <a asp-controller="ThiSinh" asp-action="ThongTinCaNhan" class="ui-btn ui-btn--outline">
+            <partial name="_Icon" model='("user", 16)' /><span>Cập nhật thông tin cá nhân</span>
+        </a>
+        <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="ui-btn ui-btn--primary">
+            <partial name="_Icon" model='("graduation-cap", 16)' /><span>Chọn ngành &amp; nộp hồ sơ mới</span>
+        </a>
     </div>
 
-    @* Kiểm tra thông tin cá nhân thí sinh *@
     @if (Model.ThongTinThiSinh == null || !Model.ThongTinThiSinh.DiemThiTHPT.HasValue)
     {
-        <div class="alert alert-warning shadow-sm border-0 d-flex justify-content-between align-items-center mb-4 p-3">
-            <div>
-                <strong class="fs-6">⚠️ Bạn chưa hoàn thiện hồ sơ cá nhân / điểm thi THPT!</strong>
-                <div class="small text-muted mt-1">Hãy cập nhật họ tên, ngày sinh, số điện thoại, tổ hợp và điểm thi THPT để đủ điều kiện nộp hồ sơ xét tuyển.</div>
+        <div class="ui-alert ui-alert--warn" role="alert">
+            <partial name="_Icon" model='("triangle-alert", 18)' />
+            <div class="ui-alert__body">
+                <strong>Bạn chưa hoàn thiện hồ sơ cá nhân / điểm thi THPT!</strong>
+                <p>Hãy cập nhật họ tên, ngày sinh, số điện thoại, tổ hợp và điểm thi THPT để đủ điều kiện nộp hồ sơ xét tuyển.</p>
             </div>
-            <a asp-controller="ThiSinh" asp-action="ThongTinCaNhan" class="btn btn-warning btn-sm fw-bold px-3">
-                Cập nhật ngay →
-            </a>
+            <a asp-controller="ThiSinh" asp-action="ThongTinCaNhan" class="ui-btn ui-btn--primary">Cập nhật ngay →</a>
         </div>
     }
     else
     {
-        @* Card tóm tắt thông tin thí sinh *@
-        <div class="card shadow-sm border-0 mb-4 border-start border-success border-4">
-            <div class="card-body">
-                <div class="row row-cols-2 row-cols-md-4 g-3 align-items-center">
-                    <div>
-                        <div class="text-muted small">Họ và tên</div>
-                        <div class="fw-bold text-dark">@Model.ThongTinThiSinh.HoTen</div>
-                    </div>
-                    <div>
-                        <div class="text-muted small">Trường THPT</div>
-                        <div class="fw-bold text-dark">@(Model.ThongTinThiSinh.TruongTHPT ?? "Chưa cập nhật")</div>
-                    </div>
-                    <div>
-                        <div class="text-muted small">Tổ hợp xét tuyển</div>
-                        <div class="fw-bold text-primary">@(Model.ThongTinThiSinh.ToHopXetTuyen ?? "Chưa có")</div>
-                    </div>
-                    <div>
-                        <div class="text-muted small">Điểm thi THPT</div>
-                        <div class="fw-bold text-danger fs-5">@(Model.ThongTinThiSinh.DiemThiTHPT?.ToString("0.00") ?? "—")</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <section class="ui-grid ui-grid--4">
+            <article class="ui-metric">
+                <span class="ui-metric__label">Họ và tên</span>
+                <span class="ui-metric__text">@Model.ThongTinThiSinh.HoTen</span>
+            </article>
+            <article class="ui-metric">
+                <span class="ui-metric__label">Trường THPT</span>
+                <span class="ui-metric__text">@(Model.ThongTinThiSinh.TruongTHPT ?? "Chưa cập nhật")</span>
+            </article>
+            <article class="ui-metric">
+                <span class="ui-metric__label">Tổ hợp xét tuyển</span>
+                <span class="ui-metric__text ui-text-teal">@(Model.ThongTinThiSinh.ToHopXetTuyen ?? "Chưa có")</span>
+            </article>
+            <article class="ui-metric">
+                <span class="ui-metric__label">Điểm thi THPT</span>
+                <span class="ui-metric__value ui-text-red">@(Model.ThongTinThiSinh.DiemThiTHPT?.ToString("0.00") ?? "—")</span>
+            </article>
+        </section>
     }
 
-    @* Danh sách các nguyện vọng / hồ sơ đã nộp của thí sinh *@
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="fw-bold mb-0 text-dark">📋 Các nguyện vọng xét tuyển của bạn</h5>
-            <span class="badge bg-light text-dark border">@Model.DanhSachHoSoCuaToi.Count hồ sơ</span>
-        </div>
-        <div class="card-body p-0">
-            @if (!Model.DanhSachHoSoCuaToi.Any())
-            {
-                <div class="text-center py-5">
-                    <div class="display-6 text-muted mb-3">📁</div>
-                    <h5 class="fw-bold text-muted">Bạn chưa nộp hồ sơ xét tuyển nào</h5>
-                    <p class="text-muted small mb-3">Hãy chọn một ngành đang mở tuyển sinh để nộp nguyện vọng xét tuyển ngay!</p>
-                    <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="btn btn-primary">
-                        🎓 Khám phá các ngành đang tuyển sinh ngay
-                    </a>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mã hồ sơ</th>
-                                <th>Ngành đăng ký</th>
-                                <th>Khoa đào tạo</th>
-                                <th>Ngày nộp</th>
-                                <th>Trạng thái hồ sơ</th>
-                                <th>Lịch phỏng vấn</th>
-                                <th>Kết quả</th>
-                                <th class="text-end">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var hs in Model.DanhSachHoSoCuaToi)
-                            {
-                                var badgeTrangThai = hs.TrangThai == TrangThaiHoSo.TrungTuyen ? "bg-success"
-                                                   : hs.TrangThai == TrangThaiHoSo.KhongTrungTuyen ? "bg-danger"
-                                                   : hs.TrangThai == TrangThaiHoSo.ChoPhongVan ? "bg-info text-dark"
-                                                   : hs.TrangThai == TrangThaiHoSo.DaPhongVan ? "bg-primary"
-                                                   : hs.TrangThai == TrangThaiHoSo.DatSoTuyen ? "bg-warning text-dark"
-                                                   : "bg-secondary";
+    <article class="ui-card">
+        <header class="ui-card__head">
+            <div>
+                <h2>Các nguyện vọng xét tuyển của bạn</h2>
+                <p>@Model.DanhSachHoSoCuaToi.Count hồ sơ · sắp xếp theo ngày nộp mới nhất</p>
+            </div>
+        </header>
 
-                                var lichMoiNhat = hs.LichPhongVans.OrderByDescending(l => l.ThoiGianBatDau).FirstOrDefault();
-                                <tr>
-                                    <td class="fw-bold text-muted">#@hs.MaHoSo</td>
-                                    <td class="fw-semibold text-primary">@hs.NganhTuyenSinh?.TenNganh</td>
-                                    <td>@hs.NganhTuyenSinh?.Khoa?.TenKhoa</td>
-                                    <td>@hs.NgayNop.ToString("dd/MM/yyyy")</td>
-                                    <td><span class="badge @badgeTrangThai">@hs.TrangThai</span></td>
-                                    <td>
-                                        @if (lichMoiNhat != null)
-                                        {
-                                            <div class="small">
-                                                <strong>@lichMoiNhat.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</strong>
-                                                <div class="text-muted">(@lichMoiNhat.HinhThucPhongVan)</div>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">Chưa có lịch</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (hs.KetQuaXetTuyen != null)
-                                        {
-                                            var kq = hs.KetQuaXetTuyen;
-                                            <span class="badge @(kq.KetQua == KetQuaTuyen.TrungTuyen ? "bg-success" : "bg-danger")">
-                                                @kq.KetQua
-                                            </span>
-                                            @if (kq.DiemDanhGia.HasValue)
-                                            {
-                                                <div class="small text-muted fw-bold">@kq.DiemDanhGia điểm</div>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">Đang xét duyệt</span>
-                                        }
-                                    </td>
-                                    <td class="text-end">
-                                        <a asp-controller="HoSoThiSinh" asp-action="TheoDoi" class="btn btn-sm btn-outline-primary">
-                                            Chi tiết
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+        @if (!Model.DanhSachHoSoCuaToi.Any())
+        {
+            <div class="ui-empty">
+                Bạn chưa nộp hồ sơ xét tuyển nào. Hãy chọn một ngành đang mở tuyển sinh để nộp nguyện vọng.
+                <div style="margin-top:14px">
+                    <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="ui-btn ui-btn--primary">Khám phá các ngành đang tuyển</a>
                 </div>
-            }
-        </div>
-    </div>
+            </div>
+        }
+        else
+        {
+            <div class="ui-tablewrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Mã hồ sơ</th>
+                            <th>Ngành đăng ký</th>
+                            <th>Khoa đào tạo</th>
+                            <th>Ngày nộp</th>
+                            <th>Trạng thái</th>
+                            <th>Lịch phỏng vấn</th>
+                            <th>Kết quả</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var hs in Model.DanhSachHoSoCuaToi)
+                        {
+                            var tt = hs.TrangThai.ToString();
+                            var lichMoiNhat = hs.LichPhongVans.OrderByDescending(l => l.ThoiGianBatDau).FirstOrDefault();
+                            <tr>
+                                <td class="ui-muted">#@hs.MaHoSo</td>
+                                <td><strong>@hs.NganhTuyenSinh?.TenNganh</strong></td>
+                                <td>@hs.NganhTuyenSinh?.Khoa?.TenKhoa</td>
+                                <td>@hs.NgayNop.ToString("dd/MM/yyyy")</td>
+                                <td><span class="ui-pill @MauTrangThai(tt)">@TenTrangThai(tt)</span></td>
+                                <td>
+                                    @if (lichMoiNhat != null)
+                                    {
+                                        <strong>@lichMoiNhat.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</strong>
+                                        <div class="ui-muted">(@lichMoiNhat.HinhThucPhongVan)</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-muted">Chưa có lịch</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (hs.KetQuaXetTuyen != null)
+                                    {
+                                        var kq = hs.KetQuaXetTuyen;
+                                        <span class="ui-pill @(kq.KetQua == KetQuaTuyen.TrungTuyen ? "ui-pill--green" : "ui-pill--red")">@kq.KetQua</span>
+                                        @if (kq.DiemDanhGia.HasValue)
+                                        {
+                                            <div class="ui-muted">@kq.DiemDanhGia điểm</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-muted">Đang xét duyệt</span>
+                                    }
+                                </td>
+                                <td class="ui-right">
+                                    <a asp-controller="HoSoThiSinh" asp-action="TheoDoi" class="ui-btn ui-btn--outline ui-btn--sm">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </article>
 }
