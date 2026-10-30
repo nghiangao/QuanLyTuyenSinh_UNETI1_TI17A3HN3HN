@@ -1,0 +1,127 @@
+/* ===== Module 5 · Lập lịch phỏng vấn (LichPhongVan/Create) =====
+   Dán vào cuối wwwroot/css/module5.css
+   Màu / cỡ chữ / khoảng cách lấy từ design tokens trong file Figma. */
+
+.m5-create {
+    --m5-ink: #182e43;
+    --m5-muted: #64768a;
+    --m5-soft: #91a1b1;
+    --m5-line: #dfe6ee;
+    --m5-bg: #f3f6fa;
+    --m5-teal: #087f82;
+    --m5-teal-soft: #e7f5f3;
+    --m5-danger: #b34545;
+    --m5-danger-soft: #fcefef;
+    --m5-warn: #996315;
+    --m5-warn-soft: #fff5df;
+    --m5-ok: #24744e;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--m5-ink);
+}
+
+.m5-create *, .m5-create *::before, .m5-create *::after { box-sizing: border-box; }
+
+/* ----- Tiêu đề trang ----- */
+.m5-page-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+.m5-page-title { margin: 0 0 6px; font-size: 27px; font-weight: 700; line-height: 1.5; color: var(--m5-ink); }
+.m5-page-sub { margin: 0; font-size: 13px; color: var(--m5-muted); }
+
+/* ----- Nút ----- */
+.m5-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 40px; padding: 0 16px; border-radius: 6px;
+    font: 600 13px/1 Inter, system-ui, sans-serif; text-decoration: none; cursor: pointer;
+    border: 1px solid var(--m5-line); background: #fff; color: var(--m5-ink);
+}
+.m5-btn:hover { background: var(--m5-bg); }
+.m5-btn-primary { background: var(--m5-teal); border-color: var(--m5-teal); color: #fff; }
+.m5-btn-primary:hover { background: #066b6d; }
+
+/* ----- Lưới 2 cột ----- */
+.m5-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) 452px; gap: 24px; align-items: start; }
+.m5-col-main, .m5-col-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+@media (max-width: 1100px) { .m5-form-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ----- Thẻ ----- */
+.m5-card {
+    display: flex; flex-direction: column; gap: 18px;
+    background: #fff; border: 1px solid var(--m5-line); border-radius: 10px; padding: 24px;
+}
+.m5-card-head h2 { margin: 0 0 3px; font-size: 16px; font-weight: 600; line-height: 1.5; }
+.m5-card-head p { margin: 0; font-size: 12px; color: var(--m5-muted); }
+
+/* ----- Ô nhập ----- */
+.m5-field { display: flex; flex-direction: column; gap: 7px; }
+.m5-label { font-size: 13px; font-weight: 600; color: var(--m5-ink); }
+.m5-req { color: var(--m5-danger); }
+.m5-input {
+    width: 100%; height: 44px; padding: 12px; border: 1px solid var(--m5-line); border-radius: 6px;
+    background: #fff; color: var(--m5-ink); font: 400 13px Inter, system-ui, sans-serif;
+}
+.m5-input::placeholder { color: var(--m5-soft); }
+.m5-input:focus { outline: none; border-color: var(--m5-teal); box-shadow: 0 0 0 3px rgba(8, 127, 130, .15); }
+.m5-textarea { height: auto; min-height: 102px; resize: vertical; line-height: 1.5; }
+.m5-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.m5-row-tight { gap: 12px; }
+@media (max-width: 640px) { .m5-row-2 { grid-template-columns: 1fr; } }
+
+/* Ô có icon ở cuối (select, địa điểm) */
+.m5-control { position: relative; }
+.m5-control .m5-input { padding-right: 40px; }
+.m5-control select.m5-input { appearance: none; -webkit-appearance: none; }
+.m5-icon-end { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: inline-flex; color: var(--m5-soft); pointer-events: none; }
+
+/* Gợi ý & lỗi (jQuery Validation tự thêm các class bên dưới) */
+.m5-hint { font-size: 11px; color: var(--m5-muted); }
+.m5-error, .field-validation-error { font-size: 11px; color: var(--m5-danger); }
+.input-validation-error { border-color: var(--m5-danger) !important; }
+.field-validation-valid { display: none; }
+
+/* ----- Radio dạng thẻ ----- */
+.m5-radio {
+    display: flex; align-items: center; gap: 10px; height: 44px; padding: 12px;
+    border: 1px solid var(--m5-line); border-radius: 6px; background: #fff;
+    font-size: 13px; color: var(--m5-muted); cursor: pointer;
+}
+.m5-radio input { position: absolute; opacity: 0; pointer-events: none; }
+.m5-radio-on { display: none; }
+.m5-radio-off, .m5-radio-on { align-items: center; }
+.m5-radio-off { display: inline-flex; }
+.m5-radio:has(input:checked) { background: var(--m5-teal-soft); border-color: var(--m5-teal); color: var(--m5-teal); font-weight: 600; }
+.m5-radio:has(input:checked) .m5-radio-on { display: inline-flex; }
+.m5-radio:has(input:checked) .m5-radio-off { display: none; }
+.m5-radio:has(input:focus-visible) { outline: 2px solid var(--m5-teal); outline-offset: 2px; }
+
+/* ----- Tóm tắt hồ sơ ----- */
+.m5-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; border-radius: 6px; background: var(--m5-bg); }
+.m5-summary[hidden] { display: none; }
+.m5-summary-info { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.m5-summary-label { font-size: 12px; color: var(--m5-muted); }
+.m5-summary-info strong { font-size: 14px; font-weight: 600; }
+.m5-summary-status { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.m5-pill { display: inline-flex; padding: 4px 9px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+.m5-pill-warn { background: var(--m5-warn-soft); color: var(--m5-warn); }
+.m5-ok-note { font-size: 12px; color: var(--m5-ok); }
+
+/* ----- Thanh lưu ----- */
+.m5-savebar { flex-direction: row; align-items: center; gap: 12px; padding: 20px; }
+.m5-savebar-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.m5-savebar-title { font-size: 13px; font-weight: 600; }
+.m5-savebar-sub { font-size: 11px; color: var(--m5-muted); }
+
+/* ----- Cột phải ----- */
+.m5-conflict { padding: 16px; border-radius: 6px; background: var(--m5-danger-soft); }
+.m5-conflict ul, .m5-checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.m5-conflict li, .m5-checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: var(--m5-muted); }
+.m5-conflict li { color: var(--m5-danger); font-weight: 600; }
+.m5-checklist li svg, .m5-conflict li svg { flex-shrink: 0; }
+
+.m5-notice { display: flex; gap: 12px; padding: 16px; border-radius: 6px; background: var(--m5-teal-soft); color: var(--m5-teal); }
+.m5-notice strong { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+.m5-notice p { margin: 0; font-size: 12px; line-height: 1.5; }
+.m5-notice-icon { display: inline-flex; flex-shrink: 0; }
+
+/* ----- Màu tiện ích ----- */
+.m5-text-danger { color: var(--m5-danger); }
+.m5-text-ok { color: var(--m5-ok); }
+.m5-text-danger, .m5-text-ok { display: inline-flex; }

@@ -1,6 +1,6 @@
-// Họ và tên: Nguyễn Đức Nghĩa
-// Mã sinh viên: 23103100307
-// Nội dung thực hiện: Tạo database, tạo bảng, thiết lập quan hệ giữa các bảng, thêm dữ liệu mẫu.
+﻿// Há» vÃ  tÃªn: Nguyá»…n Äá»©c NghÄ©a
+// MÃ£ sinh viÃªn: 23103100307
+// Ná»™i dung thá»±c hiá»‡n: Táº¡o database, táº¡o báº£ng, thiáº¿t láº­p quan há»‡ giá»¯a cÃ¡c báº£ng, thÃªm dá»¯ liá»‡u máº«u.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,31 +13,31 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
     {
         public static void Initialize(ApplicationDbContext context)
         {
-            // Tự động apply Migration
+            // Tá»± Ä‘á»™ng apply Migration
             context.Database.Migrate();
 
-            // Nếu đã có dữ liệu Khoa thì bỏ qua
-            if (context.Khoas.Any())
+            // Náº¿u Ä‘Ã£ cÃ³ dá»¯ liá»‡u Khoa thÃ¬ bá» qua
+            if (context.TaiKhoans.Any())
             {
                 return;
             }
 
             // ==========================================
-            // 1. KHOA (05 khoa theo yêu cầu)
+            // 1. KHOA (05 khoa theo yÃªu cáº§u)
             // ==========================================
             var khoas = new List<Khoa>
             {
-                new Khoa { TenKhoa = "Công nghệ thông tin", MoTa = "Đào tạo các ngành CNTT mũi nhọn", EmailLienHe = "cntt@uneti.edu.vn", TrangThai = true },
-                new Khoa { TenKhoa = "Điện - Điện tử", MoTa = "Đào tạo kỹ sư điện, điều khiển và tự động hóa", EmailLienHe = "diendientu@uneti.edu.vn", TrangThai = true },
-                new Khoa { TenKhoa = "Cơ khí", MoTa = "Đào tạo kỹ thuật cơ khí, cơ điện tử, ô tô", EmailLienHe = "cokhi@uneti.edu.vn", TrangThai = true },
-                new Khoa { TenKhoa = "Kinh tế", MoTa = "Đào tạo quản trị kinh doanh, kế toán, tài chính", EmailLienHe = "kinhte@uneti.edu.vn", TrangThai = true },
-                new Khoa { TenKhoa = "Ngoại ngữ", MoTa = "Đào tạo ngôn ngữ Anh, Trung Quốc", EmailLienHe = "ngoaignu@uneti.edu.vn", TrangThai = true }
+                new Khoa { TenKhoa = "CÃ´ng nghá»‡ thÃ´ng tin", MoTa = "ÄÃ o táº¡o cÃ¡c ngÃ nh CNTT mÅ©i nhá»n", EmailLienHe = "cntt@uneti.edu.vn", TrangThai = true },
+                new Khoa { TenKhoa = "Äiá»‡n - Äiá»‡n tá»­", MoTa = "ÄÃ o táº¡o ká»¹ sÆ° Ä‘iá»‡n, Ä‘iá»u khiá»ƒn vÃ  tá»± Ä‘á»™ng hÃ³a", EmailLienHe = "diendientu@uneti.edu.vn", TrangThai = true },
+                new Khoa { TenKhoa = "CÆ¡ khÃ­", MoTa = "ÄÃ o táº¡o ká»¹ thuáº­t cÆ¡ khÃ­, cÆ¡ Ä‘iá»‡n tá»­, Ã´ tÃ´", EmailLienHe = "cokhi@uneti.edu.vn", TrangThai = true },
+                new Khoa { TenKhoa = "Kinh táº¿", MoTa = "ÄÃ o táº¡o quáº£n trá»‹ kinh doanh, káº¿ toÃ¡n, tÃ i chÃ­nh", EmailLienHe = "kinhte@uneti.edu.vn", TrangThai = true },
+                new Khoa { TenKhoa = "Ngoáº¡i ngá»¯", MoTa = "ÄÃ o táº¡o ngÃ´n ngá»¯ Anh, Trung Quá»‘c", EmailLienHe = "ngoaignu@uneti.edu.vn", TrangThai = true }
             };
             context.Khoas.AddRange(khoas);
             context.SaveChanges();
 
             // ==========================================
-            // 2. NGÀNH TUYỂN SINH (15 ngành: Đang tuyển, Đã đóng, Hết hạn, Chưa mở)
+            // 2. NGÃ€NH TUYá»‚N SINH (15 ngÃ nh: Äang tuyá»ƒn, ÄÃ£ Ä‘Ã³ng, Háº¿t háº¡n, ChÆ°a má»Ÿ)
             // ==========================================
             var today = DateTime.Today;
             var nganhs = new List<NganhTuyenSinh>
@@ -45,205 +45,205 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                 // Khoa CNTT
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Công nghệ thông tin",
+                    TenNganh = "CÃ´ng nghá»‡ thÃ´ng tin",
                     MaKhoa = khoas[0].MaKhoa,
                     ChiTieu = 120,
                     ToHopXetTuyen = "A00, A01, D01",
                     DiemXetTuyenToiThieu = 22.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-15),
                     HanNopHoSo = today.AddDays(20),
-                    MoTaNganh = "Chương trình đào tạo kỹ sư công nghệ thông tin định hướng ứng dụng.",
-                    YeuCauThiSinh = "Tốt nghiệp THPT, có đam mê lập trình.",
+                    MoTaNganh = "ChÆ°Æ¡ng trÃ¬nh Ä‘Ã o táº¡o ká»¹ sÆ° cÃ´ng nghá»‡ thÃ´ng tin Ä‘á»‹nh hÆ°á»›ng á»©ng dá»¥ng.",
+                    YeuCauThiSinh = "Tá»‘t nghiá»‡p THPT, cÃ³ Ä‘am mÃª láº­p trÃ¬nh.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Kỹ thuật phần mềm",
+                    TenNganh = "Ká»¹ thuáº­t pháº§n má»m",
                     MaKhoa = khoas[0].MaKhoa,
                     ChiTieu = 80,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 21.5m,
                     NgayBatDauNhanHoSo = today.AddDays(-10),
                     HanNopHoSo = today.AddDays(25),
-                    MoTaNganh = "Đào tạo chuyên sâu về kiến trúc phần mềm, quy trình phát triển Agile/Scrum.",
-                    YeuCauThiSinh = "Tư duy logic tốt, tiếng Anh cơ bản.",
+                    MoTaNganh = "ÄÃ o táº¡o chuyÃªn sÃ¢u vá» kiáº¿n trÃºc pháº§n má»m, quy trÃ¬nh phÃ¡t triá»ƒn Agile/Scrum.",
+                    YeuCauThiSinh = "TÆ° duy logic tá»‘t, tiáº¿ng Anh cÆ¡ báº£n.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "An toàn thông tin",
+                    TenNganh = "An toÃ n thÃ´ng tin",
                     MaKhoa = khoas[0].MaKhoa,
                     ChiTieu = 60,
                     ToHopXetTuyen = "A00, A01, D01",
                     DiemXetTuyenToiThieu = 21.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-12),
                     HanNopHoSo = today.AddDays(18),
-                    MoTaNganh = "Bảo mật hệ thống, phòng thủ không gian mạng.",
-                    YeuCauThiSinh = "Đạo đức tốt, cẩn thận, kỷ luật.",
+                    MoTaNganh = "Báº£o máº­t há»‡ thá»‘ng, phÃ²ng thá»§ khÃ´ng gian máº¡ng.",
+                    YeuCauThiSinh = "Äáº¡o Ä‘á»©c tá»‘t, cáº©n tháº­n, ká»· luáº­t.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Trí tuệ nhân tạo",
+                    TenNganh = "TrÃ­ tuá»‡ nhÃ¢n táº¡o",
                     MaKhoa = khoas[0].MaKhoa,
                     ChiTieu = 50,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 23.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-5),
                     HanNopHoSo = today.AddDays(30),
-                    MoTaNganh = "Nghiên cứu thị giác máy tính, NLP, học máy hiện đại.",
-                    YeuCauThiSinh = "Toán học tốt, tư duy giải thuật xuất sắc.",
+                    MoTaNganh = "NghiÃªn cá»©u thá»‹ giÃ¡c mÃ¡y tÃ­nh, NLP, há»c mÃ¡y hiá»‡n Ä‘áº¡i.",
+                    YeuCauThiSinh = "ToÃ¡n há»c tá»‘t, tÆ° duy giáº£i thuáº­t xuáº¥t sáº¯c.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Khoa học máy tính",
+                    TenNganh = "Khoa há»c mÃ¡y tÃ­nh",
                     MaKhoa = khoas[0].MaKhoa,
                     ChiTieu = 70,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 20.5m,
                     NgayBatDauNhanHoSo = today.AddDays(10),
                     HanNopHoSo = today.AddDays(40),
-                    MoTaNganh = "Nền tảng thuật toán, tính toán đám mây và hệ thống phân tán.",
-                    YeuCauThiSinh = "Đam mê khoa học cơ bản.",
-                    TrangThai = TrangThaiNganh.ChuaMo // Chưa mở
+                    MoTaNganh = "Ná»n táº£ng thuáº­t toÃ¡n, tÃ­nh toÃ¡n Ä‘Ã¡m mÃ¢y vÃ  há»‡ thá»‘ng phÃ¢n tÃ¡n.",
+                    YeuCauThiSinh = "Äam mÃª khoa há»c cÆ¡ báº£n.",
+                    TrangThai = TrangThaiNganh.ChuaMo // ChÆ°a má»Ÿ
                 },
 
-                // Khoa Điện - Điện tử
+                // Khoa Äiá»‡n - Äiá»‡n tá»­
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Công nghệ kỹ thuật điện, điện tử",
+                    TenNganh = "CÃ´ng nghá»‡ ká»¹ thuáº­t Ä‘iá»‡n, Ä‘iá»‡n tá»­",
                     MaKhoa = khoas[1].MaKhoa,
                     ChiTieu = 100,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 19.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-20),
                     HanNopHoSo = today.AddDays(15),
-                    MoTaNganh = "Thiết kế vi mạch, hệ thống điện thông minh.",
-                    YeuCauThiSinh = "Sức khỏe tốt, chịu khó học hỏi.",
+                    MoTaNganh = "Thiáº¿t káº¿ vi máº¡ch, há»‡ thá»‘ng Ä‘iá»‡n thÃ´ng minh.",
+                    YeuCauThiSinh = "Sá»©c khá»e tá»‘t, chá»‹u khÃ³ há»c há»i.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Điều khiển và tự động hóa",
+                    TenNganh = "Äiá»u khiá»ƒn vÃ  tá»± Ä‘á»™ng hÃ³a",
                     MaKhoa = khoas[1].MaKhoa,
                     ChiTieu = 90,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 20.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-15),
                     HanNopHoSo = today.AddDays(15),
-                    MoTaNganh = "Tự động hóa nhà máy, PLC, SCADA, Robotics.",
-                    YeuCauThiSinh = "Kỹ năng thực hành tốt.",
+                    MoTaNganh = "Tá»± Ä‘á»™ng hÃ³a nhÃ  mÃ¡y, PLC, SCADA, Robotics.",
+                    YeuCauThiSinh = "Ká»¹ nÄƒng thá»±c hÃ nh tá»‘t.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Kỹ thuật viễn thông",
+                    TenNganh = "Ká»¹ thuáº­t viá»…n thÃ´ng",
                     MaKhoa = khoas[1].MaKhoa,
                     ChiTieu = 60,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 18.5m,
                     NgayBatDauNhanHoSo = today.AddDays(-40),
-                    HanNopHoSo = today.AddDays(-5), // Hết hạn
-                    MoTaNganh = "Mạng 5G, truyền thông không dây, IoT.",
-                    YeuCauThiSinh = "Tốt nghiệp THPT.",
+                    HanNopHoSo = today.AddDays(-5), // Háº¿t háº¡n
+                    MoTaNganh = "Máº¡ng 5G, truyá»n thÃ´ng khÃ´ng dÃ¢y, IoT.",
+                    YeuCauThiSinh = "Tá»‘t nghiá»‡p THPT.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
 
-                // Khoa Cơ khí
+                // Khoa CÆ¡ khÃ­
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Công nghệ kỹ thuật cơ khí",
+                    TenNganh = "CÃ´ng nghá»‡ ká»¹ thuáº­t cÆ¡ khÃ­",
                     MaKhoa = khoas[2].MaKhoa,
                     ChiTieu = 80,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 18.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-30),
-                    HanNopHoSo = today.AddDays(-2), // Hết hạn
-                    MoTaNganh = "Gia công CNC, CAD/CAM, chế tạo máy hiện đại.",
-                    YeuCauThiSinh = "Độ khéo tay, sức khỏe đạt loại khá.",
+                    HanNopHoSo = today.AddDays(-2), // Háº¿t háº¡n
+                    MoTaNganh = "Gia cÃ´ng CNC, CAD/CAM, cháº¿ táº¡o mÃ¡y hiá»‡n Ä‘áº¡i.",
+                    YeuCauThiSinh = "Äá»™ khÃ©o tay, sá»©c khá»e Ä‘áº¡t loáº¡i khÃ¡.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Công nghệ kỹ thuật ô tô",
+                    TenNganh = "CÃ´ng nghá»‡ ká»¹ thuáº­t Ã´ tÃ´",
                     MaKhoa = khoas[2].MaKhoa,
                     ChiTieu = 110,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 21.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-10),
                     HanNopHoSo = today.AddDays(20),
-                    MoTaNganh = "Kỹ thuật động cơ ô tô, xe điện, chẩn đoán ô tô số.",
-                    YeuCauThiSinh = "Sức khỏe tốt, ham thích công nghệ ô tô.",
+                    MoTaNganh = "Ká»¹ thuáº­t Ä‘á»™ng cÆ¡ Ã´ tÃ´, xe Ä‘iá»‡n, cháº©n Ä‘oÃ¡n Ã´ tÃ´ sá»‘.",
+                    YeuCauThiSinh = "Sá»©c khá»e tá»‘t, ham thÃ­ch cÃ´ng nghá»‡ Ã´ tÃ´.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Kỹ thuật cơ điện tử",
+                    TenNganh = "Ká»¹ thuáº­t cÆ¡ Ä‘iá»‡n tá»­",
                     MaKhoa = khoas[2].MaKhoa,
                     ChiTieu = 70,
                     ToHopXetTuyen = "A00, A01",
                     DiemXetTuyenToiThieu = 19.5m,
                     NgayBatDauNhanHoSo = today.AddDays(-15),
                     HanNopHoSo = today.AddDays(15),
-                    MoTaNganh = "Tích hợp cơ khí, điện tử và điều khiển số.",
-                    YeuCauThiSinh = "Tư duy kỹ thuật tốt.",
-                    TrangThai = TrangThaiNganh.TamDung // Tạm dừng
+                    MoTaNganh = "TÃ­ch há»£p cÆ¡ khÃ­, Ä‘iá»‡n tá»­ vÃ  Ä‘iá»u khiá»ƒn sá»‘.",
+                    YeuCauThiSinh = "TÆ° duy ká»¹ thuáº­t tá»‘t.",
+                    TrangThai = TrangThaiNganh.TamDung // Táº¡m dá»«ng
                 },
 
-                // Khoa Kinh tế
+                // Khoa Kinh táº¿
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Quản trị kinh doanh",
+                    TenNganh = "Quáº£n trá»‹ kinh doanh",
                     MaKhoa = khoas[3].MaKhoa,
                     ChiTieu = 150,
                     ToHopXetTuyen = "A00, A01, D01",
                     DiemXetTuyenToiThieu = 20.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-20),
                     HanNopHoSo = today.AddDays(10),
-                    MoTaNganh = "Khởi nghiệp, quản trị doanh nghiệp, marketing và nhân sự.",
-                    YeuCauThiSinh = "Năng động, giao tiếp tự tin.",
+                    MoTaNganh = "Khá»Ÿi nghiá»‡p, quáº£n trá»‹ doanh nghiá»‡p, marketing vÃ  nhÃ¢n sá»±.",
+                    YeuCauThiSinh = "NÄƒng Ä‘á»™ng, giao tiáº¿p tá»± tin.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Kế toán",
+                    TenNganh = "Káº¿ toÃ¡n",
                     MaKhoa = khoas[3].MaKhoa,
                     ChiTieu = 100,
                     ToHopXetTuyen = "A00, A01, D01",
                     DiemXetTuyenToiThieu = 19.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-20),
                     HanNopHoSo = today.AddDays(15),
-                    MoTaNganh = "Kế toán doanh nghiệp, kiểm toán, thuế tài chính.",
-                    YeuCauThiSinh = "Cẩn thận, tỉ mỉ, trung thực.",
+                    MoTaNganh = "Káº¿ toÃ¡n doanh nghiá»‡p, kiá»ƒm toÃ¡n, thuáº¿ tÃ i chÃ­nh.",
+                    YeuCauThiSinh = "Cáº©n tháº­n, tá»‰ má»‰, trung thá»±c.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 },
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Tài chính - Ngân hàng",
+                    TenNganh = "TÃ i chÃ­nh - NgÃ¢n hÃ ng",
                     MaKhoa = khoas[3].MaKhoa,
                     ChiTieu = 80,
                     ToHopXetTuyen = "A00, A01, D01",
                     DiemXetTuyenToiThieu = 19.5m,
                     NgayBatDauNhanHoSo = today.AddDays(-40),
-                    HanNopHoSo = today.AddDays(-10), // Hết hạn
-                    MoTaNganh = "Ngân hàng số, đầu tư tài chính, chứng khoán.",
-                    YeuCauThiSinh = "Nhạy bén với số liệu.",
-                    TrangThai = TrangThaiNganh.DaDong // Đã đóng
+                    HanNopHoSo = today.AddDays(-10), // Háº¿t háº¡n
+                    MoTaNganh = "NgÃ¢n hÃ ng sá»‘, Ä‘áº§u tÆ° tÃ i chÃ­nh, chá»©ng khoÃ¡n.",
+                    YeuCauThiSinh = "Nháº¡y bÃ©n vá»›i sá»‘ liá»‡u.",
+                    TrangThai = TrangThaiNganh.DaDong // ÄÃ£ Ä‘Ã³ng
                 },
 
-                // Khoa Ngoại ngữ
+                // Khoa Ngoáº¡i ngá»¯
                 new NganhTuyenSinh
                 {
-                    TenNganh = "Ngôn ngữ Anh",
+                    TenNganh = "NgÃ´n ngá»¯ Anh",
                     MaKhoa = khoas[4].MaKhoa,
                     ChiTieu = 100,
                     ToHopXetTuyen = "D01, D07",
                     DiemXetTuyenToiThieu = 20.0m,
                     NgayBatDauNhanHoSo = today.AddDays(-15),
                     HanNopHoSo = today.AddDays(15),
-                    MoTaNganh = "Tiếng Anh thương mại, biên phiên dịch chuyên ngành.",
-                    YeuCauThiSinh = "Điểm môn tiếng Anh THPT đạt từ 7.0 trở lên.",
+                    MoTaNganh = "Tiáº¿ng Anh thÆ°Æ¡ng máº¡i, biÃªn phiÃªn dá»‹ch chuyÃªn ngÃ nh.",
+                    YeuCauThiSinh = "Äiá»ƒm mÃ´n tiáº¿ng Anh THPT Ä‘áº¡t tá»« 7.0 trá»Ÿ lÃªn.",
                     TrangThai = TrangThaiNganh.DangTuyen
                 }
             };
@@ -251,43 +251,43 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             context.SaveChanges();
 
             // ==========================================
-            // 3. NGƯỜI PHỎNG VẤN (05 người phỏng vấn)
+            // 3. NGÆ¯á»œI PHá»ŽNG Váº¤N (05 ngÆ°á»i phá»ng váº¥n)
             // ==========================================
             var nguoiPVs = new List<NguoiPhongVan>
             {
-                new NguoiPhongVan { HoTen = "TS. Nguyễn Văn Nam", Email = "namnv@uneti.edu.vn", TrangThai = true },
-                new NguoiPhongVan { HoTen = "ThS. Trần Thị Mai", Email = "maitt@uneti.edu.vn", TrangThai = true },
-                new NguoiPhongVan { HoTen = "PGS.TS. Lê Hoàng Long", Email = "longlh@uneti.edu.vn", TrangThai = true },
-                new NguoiPhongVan { HoTen = "TS. Phạm Thu Hà", Email = "hapt@uneti.edu.vn", TrangThai = true },
-                new NguoiPhongVan { HoTen = "ThS. Vũ Đức Mạnh", Email = "manhvd@uneti.edu.vn", TrangThai = true }
+                new NguoiPhongVan { HoTen = "TS. Nguyá»…n VÄƒn Nam", Email = "namnv@uneti.edu.vn", TrangThai = true },
+                new NguoiPhongVan { HoTen = "ThS. Tráº§n Thá»‹ Mai", Email = "maitt@uneti.edu.vn", TrangThai = true },
+                new NguoiPhongVan { HoTen = "PGS.TS. LÃª HoÃ ng Long", Email = "longlh@uneti.edu.vn", TrangThai = true },
+                new NguoiPhongVan { HoTen = "TS. Pháº¡m Thu HÃ ", Email = "hapt@uneti.edu.vn", TrangThai = true },
+                new NguoiPhongVan { HoTen = "ThS. VÅ© Äá»©c Máº¡nh", Email = "manhvd@uneti.edu.vn", TrangThai = true }
             };
             context.NguoiPhongVans.AddRange(nguoiPVs);
             context.SaveChanges();
 
             // ==========================================
-            // 4. TÀI KHOẢN (2 Admin, 3 Cán bộ, 30 Thí sinh)
+            // 4. TÃ€I KHOáº¢N (2 Admin, 3 CÃ¡n bá»™, 30 ThÃ­ sinh)
             // ==========================================
             var taiKhoans = new List<TaiKhoan>
             {
                 // Admin (02)
-                new TaiKhoan { TenDangNhap = "admin1", MatKhau = "123456", HoTen = "Quản trị viên 1", Email = "admin1@uneti.edu.vn", VaiTro = VaiTro.Admin, TrangThai = true },
-                new TaiKhoan { TenDangNhap = "admin2", MatKhau = "123456", HoTen = "Quản trị viên 2", Email = "admin2@uneti.edu.vn", VaiTro = VaiTro.Admin, TrangThai = true },
+                new TaiKhoan { TenDangNhap = "admin1", MatKhau = "123456", HoTen = "Quáº£n trá»‹ viÃªn 1", Email = "admin1@uneti.edu.vn", VaiTro = VaiTro.Admin, TrangThai = true },
+                new TaiKhoan { TenDangNhap = "admin2", MatKhau = "123456", HoTen = "Quáº£n trá»‹ viÃªn 2", Email = "admin2@uneti.edu.vn", VaiTro = VaiTro.Admin, TrangThai = true },
 
-                // Cán bộ tuyển sinh (03)
-                new TaiKhoan { TenDangNhap = "canbo1", MatKhau = "123456", HoTen = "Cán bộ Nguyễn Văn A", Email = "canbo1@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true },
-                new TaiKhoan { TenDangNhap = "canbo2", MatKhau = "123456", HoTen = "Cán bộ Lê Thị B", Email = "canbo2@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true },
-                new TaiKhoan { TenDangNhap = "canbo3", MatKhau = "123456", HoTen = "Cán bộ Trần Văn C", Email = "canbo3@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true }
+                // CÃ¡n bá»™ tuyá»ƒn sinh (03)
+                new TaiKhoan { TenDangNhap = "canbo1", MatKhau = "123456", HoTen = "CÃ¡n bá»™ Nguyá»…n VÄƒn A", Email = "canbo1@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true },
+                new TaiKhoan { TenDangNhap = "canbo2", MatKhau = "123456", HoTen = "CÃ¡n bá»™ LÃª Thá»‹ B", Email = "canbo2@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true },
+                new TaiKhoan { TenDangNhap = "canbo3", MatKhau = "123456", HoTen = "CÃ¡n bá»™ Tráº§n VÄƒn C", Email = "canbo3@uneti.edu.vn", VaiTro = VaiTro.CanBoTuyenSinh, TrangThai = true }
             };
 
-            // 30 Tài khoản thí sinh
+            // 30 TÃ i khoáº£n thÃ­ sinh
             var danhSachTen = new[]
             {
-                "Nguyễn Văn An", "Trần Thị Bích", "Lê Văn Cường", "Phạm Thị Dung", "Hoàng Văn Em",
-                "Đỗ Thị Giang", "Vũ Văn Hùng", "Bùi Thị Lan", "Đinh Văn Minh", "Ngô Thị Ngọc",
-                "Phan Văn Oanh", "Dương Thị Phương", "Mai Văn Quân", "Lý Thị Sen", "Đoàn Văn Thắng",
-                "Trịnh Thị Uyên", "Lưu Văn Việt", "Hà Thị Xuân", "Cao Văn Yên", "Đào Thị Ánh",
-                "Nguyễn Tuấn Kiệt", "Trần Bảo Ngọc", "Lê Hoàng Yến", "Phạm Quốc Bảo", "Hoàng Thảo My",
-                "Đỗ Minh Trí", "Vũ Hải Đăng", "Bùi Khánh Linh", "Đinh Hữu Phước", "Ngô Thùy Trang"
+                "Nguyá»…n VÄƒn An", "Tráº§n Thá»‹ BÃ­ch", "LÃª VÄƒn CÆ°á»ng", "Pháº¡m Thá»‹ Dung", "HoÃ ng VÄƒn Em",
+                "Äá»— Thá»‹ Giang", "VÅ© VÄƒn HÃ¹ng", "BÃ¹i Thá»‹ Lan", "Äinh VÄƒn Minh", "NgÃ´ Thá»‹ Ngá»c",
+                "Phan VÄƒn Oanh", "DÆ°Æ¡ng Thá»‹ PhÆ°Æ¡ng", "Mai VÄƒn QuÃ¢n", "LÃ½ Thá»‹ Sen", "ÄoÃ n VÄƒn Tháº¯ng",
+                "Trá»‹nh Thá»‹ UyÃªn", "LÆ°u VÄƒn Viá»‡t", "HÃ  Thá»‹ XuÃ¢n", "Cao VÄƒn YÃªn", "ÄÃ o Thá»‹ Ãnh",
+                "Nguyá»…n Tuáº¥n Kiá»‡t", "Tráº§n Báº£o Ngá»c", "LÃª HoÃ ng Yáº¿n", "Pháº¡m Quá»‘c Báº£o", "HoÃ ng Tháº£o My",
+                "Äá»— Minh TrÃ­", "VÅ© Háº£i ÄÄƒng", "BÃ¹i KhÃ¡nh Linh", "Äinh Há»¯u PhÆ°á»›c", "NgÃ´ ThÃ¹y Trang"
             };
 
             for (int i = 1; i <= 30; i++)
@@ -308,18 +308,18 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             context.SaveChanges();
 
             // ==========================================
-            // 5. THÍ SINH (30 thí sinh ứng với 30 tài khoản thí sinh)
+            // 5. THÃ SINH (30 thÃ­ sinh á»©ng vá»›i 30 tÃ i khoáº£n thÃ­ sinh)
             // ==========================================
             var thiSinhTaiKhoans = taiKhoans.Where(t => t.VaiTro == VaiTro.ThiSinh).ToList();
             var thiSinhs = new List<ThiSinh>();
 
             var toHopList = new[] { "A00", "A01", "D01", "A00", "A01" };
-            var truongList = new[] { "THPT Chuyên Hà Nội - Amsterdam", "THPT Chu Văn An", "THPT Kim Liên", "THPT Thăng Long", "THPT Trần Phú" };
+            var truongList = new[] { "THPT ChuyÃªn HÃ  Ná»™i - Amsterdam", "THPT Chu VÄƒn An", "THPT Kim LiÃªn", "THPT ThÄƒng Long", "THPT Tráº§n PhÃº" };
 
             for (int i = 0; i < thiSinhTaiKhoans.Count; i++)
             {
                 var tk = thiSinhTaiKhoans[i];
-                decimal diem = 19.5m + (i % 10) * 0.9m; // Dao động 19.5 -> 27.6
+                decimal diem = 19.5m + (i % 10) * 0.9m; // Dao Ä‘á»™ng 19.5 -> 27.6
                 if (diem > 29.5m) diem = 28.5m;
 
                 thiSinhs.Add(new ThiSinh
@@ -330,11 +330,11 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                     GioiTinh = (i % 2 == 0) ? GioiTinhConst.Nam : GioiTinhConst.Nu,
                     SoDienThoai = $"098{i:D7}",
                     Email = tk.Email,
-                    DiaChi = $"Số {i + 12}, Đường Giải Phóng, Hà Nội",
+                    DiaChi = $"Sá»‘ {i + 12}, ÄÆ°á»ng Giáº£i PhÃ³ng, HÃ  Ná»™i",
                     ToHopXetTuyen = toHopList[i % toHopList.Length],
                     TruongTHPT = truongList[i % truongList.Length],
                     DiemThiTHPT = diem,
-                    ThanhTichNoiBat = (i % 3 == 0) ? "Đạt giải Học sinh giỏi cấp tỉnh môn Toán" : "Học sinh giỏi 3 năm THPT",
+                    ThanhTichNoiBat = (i % 3 == 0) ? "Äáº¡t giáº£i Há»c sinh giá»i cáº¥p tá»‰nh mÃ´n ToÃ¡n" : "Há»c sinh giá»i 3 nÄƒm THPT",
                     TrangThai = true
                 });
             }
@@ -342,7 +342,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             context.SaveChanges();
 
             // ==========================================
-            // 6. HỒ SƠ XÉT TUYỂN (45 hồ sơ trải đủ trạng thái)
+            // 6. Há»’ SÆ  XÃ‰T TUYá»‚N (45 há»“ sÆ¡ tráº£i Ä‘á»§ tráº¡ng thÃ¡i)
             // ==========================================
             var hoSos = new List<HoSoXetTuyen>();
             var trangThais = new[]
@@ -360,7 +360,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             for (int i = 0; i < 45; i++)
             {
                 var ts = thiSinhs[i % thiSinhs.Count];
-                var ng = nganhs[i % 8]; // Chọn trong các ngành Đang tuyển
+                var ng = nganhs[i % 8]; // Chá»n trong cÃ¡c ngÃ nh Äang tuyá»ƒn
                 var status = trangThais[i % trangThais.Length];
 
                 var hs = new HoSoXetTuyen
@@ -368,12 +368,12 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                     MaThiSinh = ts.MaThiSinh,
                     MaNganh = ng.MaNganh,
                     NgayNop = today.AddDays(-14 + (i % 10)),
-                    NguyenVongXetTuyen = $"Đăng ký nguyện vọng vào ngành {ng.TenNganh} để trở thành kỹ sư giỏi.",
-                    GhiChu = "Đã nộp đầy đủ học bạ và giấy chứng nhận tốt nghiệp tạm thời.",
+                    NguyenVongXetTuyen = $"ÄÄƒng kÃ½ nguyá»‡n vá»ng vÃ o ngÃ nh {ng.TenNganh} Ä‘á»ƒ trá»Ÿ thÃ nh ká»¹ sÆ° giá»i.",
+                    GhiChu = "ÄÃ£ ná»™p Ä‘áº§y Ä‘á»§ há»c báº¡ vÃ  giáº¥y chá»©ng nháº­n tá»‘t nghiá»‡p táº¡m thá»i.",
                     TrangThai = status,
                     NgayXuLy = (status != TrangThaiHoSo.ChoDuyet) ? today.AddDays(-5 + (i % 4)) : null,
                     NhanXetSoTuyen = (status != TrangThaiHoSo.ChoDuyet)
-                        ? (status == TrangThaiHoSo.KhongDatSoTuyen ? "Điểm xét tuyển chưa đạt ngưỡng yêu cầu" : "Hồ sơ đầy đủ, đạt yêu cầu sơ tuyển")
+                        ? (status == TrangThaiHoSo.KhongDatSoTuyen ? "Äiá»ƒm xÃ©t tuyá»ƒn chÆ°a Ä‘áº¡t ngÆ°á»¡ng yÃªu cáº§u" : "Há»“ sÆ¡ Ä‘áº§y Ä‘á»§, Ä‘áº¡t yÃªu cáº§u sÆ¡ tuyá»ƒn")
                         : null
                 };
                 hoSos.Add(hs);
@@ -382,9 +382,9 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             context.SaveChanges();
 
             // ==========================================
-            // 7. LỊCH PHỎNG VẤN (18 lịch phỏng vấn)
+            // 7. Lá»ŠCH PHá»ŽNG Váº¤N (18 lá»‹ch phá»ng váº¥n)
             // ==========================================
-            // Lập lịch cho các hồ sơ ở trạng thái Đạt sơ tuyển, Chờ phỏng vấn, Đã phỏng vấn, Trúng tuyển, Không trúng tuyển
+            // Láº­p lá»‹ch cho cÃ¡c há»“ sÆ¡ á»Ÿ tráº¡ng thÃ¡i Äáº¡t sÆ¡ tuyá»ƒn, Chá» phá»ng váº¥n, ÄÃ£ phá»ng váº¥n, TrÃºng tuyá»ƒn, KhÃ´ng trÃºng tuyá»ƒn
             var hsCanLich = hoSos.Where(h =>
                 h.TrangThai == TrangThaiHoSo.DatSoTuyen ||
                 h.TrangThai == TrangThaiHoSo.ChoPhongVan ||
@@ -399,8 +399,8 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                 var hs = hsCanLich[i];
                 var npv = nguoiPVs[i % nguoiPVs.Count];
 
-                // Nếu hồ sơ Đã phỏng vấn, Trúng tuyển, Không trúng tuyển => Lịch Đã hoàn thành (quá khứ)
-                // Nếu Chờ phỏng vấn => Lịch Đã lên lịch (tương lai)
+                // Náº¿u há»“ sÆ¡ ÄÃ£ phá»ng váº¥n, TrÃºng tuyá»ƒn, KhÃ´ng trÃºng tuyá»ƒn => Lá»‹ch ÄÃ£ hoÃ n thÃ nh (quÃ¡ khá»©)
+                // Náº¿u Chá» phá»ng váº¥n => Lá»‹ch ÄÃ£ lÃªn lá»‹ch (tÆ°Æ¡ng lai)
                 bool isPast = (hs.TrangThai == TrangThaiHoSo.DaPhongVan || hs.TrangThai == TrangThaiHoSo.TrungTuyen || hs.TrangThai == TrangThaiHoSo.KhongTrungTuyen);
                 DateTime start = isPast ? today.AddDays(-3).AddHours(8 + (i % 8)) : today.AddDays(2 + (i % 5)).AddHours(8 + (i % 8));
 
@@ -411,10 +411,10 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                     MaHoSo = hs.MaHoSo,
                     ThoiGianBatDau = start,
                     ThoiGianKetThuc = start.AddMinutes(45),
-                    HinhThucPhongVan = (i % 2 == 0) ? "Trực tiếp" : "Trực tuyến",
-                    DiaDiemHoacLienKet = (i % 2 == 0) ? $"Phòng PV {101 + i % 5}, Tòa nhà HA8" : "https://meet.google.com/xyz-abcd-efg",
+                    HinhThucPhongVan = (i % 2 == 0) ? "Trá»±c tiáº¿p" : "Trá»±c tuyáº¿n",
+                    DiaDiemHoacLienKet = (i % 2 == 0) ? $"PhÃ²ng PV {101 + i % 5}, TÃ²a nhÃ  HA8" : "https://meet.google.com/xyz-abcd-efg",
                     MaNguoiPhongVan = npv.MaNguoiPhongVan,
-                    GhiChu = "Phỏng vấn đánh giá kiến thức cơ sở và năng lực tư duy.",
+                    GhiChu = "Phá»ng váº¥n Ä‘Ã¡nh giÃ¡ kiáº¿n thá»©c cÆ¡ sá»Ÿ vÃ  nÄƒng lá»±c tÆ° duy.",
                     TrangThai = statusLich
                 });
             }
@@ -422,7 +422,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
             context.SaveChanges();
 
             // ==========================================
-            // 8. KẾT QUẢ XÉT TUYỂN (Ghi nhận cho các hồ sơ đã phỏng vấn)
+            // 8. Káº¾T QUáº¢ XÃ‰T TUYá»‚N (Ghi nháº­n cho cÃ¡c há»“ sÆ¡ Ä‘Ã£ phá»ng váº¥n)
             // ==========================================
             var hsCoKetQua = hoSos.Where(h =>
                 h.TrangThai == TrangThaiHoSo.DaPhongVan ||
@@ -443,7 +443,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
                 {
                     MaHoSo = hs.MaHoSo,
                     DiemDanhGia = diemDG,
-                    NhanXet = isPass ? "Thí sinh có tư duy phản biện tốt, kỹ năng giao tiếp tốt, tự tin." : "Kiến thức nền tảng chưa vững, cần rèn luyện thêm kỹ năng mềm.",
+                    NhanXet = isPass ? "ThÃ­ sinh cÃ³ tÆ° duy pháº£n biá»‡n tá»‘t, ká»¹ nÄƒng giao tiáº¿p tá»‘t, tá»± tin." : "Kiáº¿n thá»©c ná»n táº£ng chÆ°a vá»¯ng, cáº§n rÃ¨n luyá»‡n thÃªm ká»¹ nÄƒng má»m.",
                     KetQua = isPass ? KetQuaTuyen.TrungTuyen : KetQuaTuyen.KhongTrungTuyen,
                     NgayCapNhat = today.AddDays(-1)
                 });
@@ -453,4 +453,5 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Data
         }
     }
 }
+
 

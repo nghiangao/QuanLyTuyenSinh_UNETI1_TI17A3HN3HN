@@ -1,80 +1,269 @@
 @*
     Họ và tên: Mã Đức Thịnh
     Mã sinh viên: 23103100314
-    Nội dung thực hiện: Module 5 - Form lập lịch phỏng vấn (chọn hồ sơ Đạt sơ tuyển,
-    người phỏng vấn, thời gian bằng datetime-local, hiển thị lỗi kiểm tra nghiệp vụ).
+    Nội dung thực hiện: Module 5 - Form lập lịch phỏng vấn theo thiết kế Figma (chọn hồ sơ Đạt sơ tuyển,
+    thời gian bằng datetime-local, hình thức Trực tiếp/Trực tuyến, người phỏng vấn, hiển thị lỗi kiểm tra nghiệp vụ).
 *@
 @model LichPhongVan
 
 @{
+    Layout = "_LayoutModule5";
     ViewData["Title"] = "Lập lịch phỏng vấn";
+
+    // Mặc định chọn "Trực tiếp" khi mở form lần đầu
+    if (string.IsNullOrEmpty(Model.HinhThucPhongVan))
+    {
+        Model.HinhThucPhongVan = "Trực tiếp";
+    }
+
+    // Gom toàn bộ lỗi (kiểm tra nghiệp vụ + kiểm tra ô nhập) để hiện ở khung bên phải và thanh lưu
+    var dsLoi = ViewData.ModelState.Values
+        .SelectMany(v => v.Errors)
+        .Select(e => e.ErrorMessage)
+        .Where(m => !string.IsNullOrWhiteSpace(m))
+        .Distinct()
+        .ToList();
+    var coLoi = dsLoi.Count > 0;
 }
 
-<h2>Lập lịch phỏng vấn</h2>
+   <link rel="stylesheet" href="~/css/module5-lichphongvan-create.css" asp-append-version="true" />
 
-<div class="row">
-    <div class="col-md-7">
-        <form asp-action="Create" method="post">
-            @* Lỗi chung (ví dụ trùng lịch) hiện ở đây; lỗi từng ô hiện ngay dưới ô đó *@
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<div class="m5-create">
 
-            <div class="mb-3">
-                <label asp-for="MaHoSo" class="form-label">Hồ sơ (chỉ hồ sơ Đạt sơ tuyển)</label>
-                <select asp-for="MaHoSo" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsHoSo" class="form-select">
-                    <option value="">-- Chọn hồ sơ --</option>
-                </select>
-                <span asp-validation-for="MaHoSo" class="text-danger"></span>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ThoiGianBatDau" class="form-label"></label>
-                    <input asp-for="ThoiGianBatDau" type="datetime-local" class="form-control" />
-                    <span asp-validation-for="ThoiGianBatDau" class="text-danger"></span>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ThoiGianKetThuc" class="form-label"></label>
-                    <input asp-for="ThoiGianKetThuc" type="datetime-local" class="form-control" />
-                    <span asp-validation-for="ThoiGianKetThuc" class="text-danger"></span>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="HinhThucPhongVan" class="form-label"></label>
-                <select asp-for="HinhThucPhongVan" class="form-select">
-                    <option value="Trực tiếp">Trực tiếp</option>
-                    <option value="Trực tuyến">Trực tuyến</option>
-                </select>
-                <span asp-validation-for="HinhThucPhongVan" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="DiaDiemHoacLienKet" class="form-label"></label>
-                <input asp-for="DiaDiemHoacLienKet" class="form-control"
-                       placeholder="Phòng phỏng vấn hoặc đường dẫn họp trực tuyến" />
-                <span asp-validation-for="DiaDiemHoacLienKet" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="MaNguoiPhongVan" class="form-label"></label>
-                <select asp-for="MaNguoiPhongVan" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsNguoiPhongVan" class="form-select">
-                    <option value="">-- Chọn người phỏng vấn --</option>
-                </select>
-                <span asp-validation-for="MaNguoiPhongVan" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="GhiChu" class="form-label"></label>
-                <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="GhiChu" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Lưu lịch</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
-        </form>
+    @* ===== Tiêu đề trang ===== *@
+    <div class="m5-page-head">
+        <div>
+            <h1 class="m5-page-title">Lập lịch phỏng vấn</h1>
+            <p class="m5-page-sub">Tạo lịch mới từ hồ sơ Đạt sơ tuyển. Kiểm tra khả dụng trước khi lưu.</p>
+        </div>
+        <a asp-action="Index" class="m5-btn m5-btn-outline">
+            <partial name="_M5Icon" model='("arrow-left", 16)' />
+            Quay lại danh sách
+        </a>
     </div>
+
+    <form asp-action="Create" method="post" class="m5-form-grid">
+
+        @* ===== Cột trái: biểu mẫu ===== *@
+        <div class="m5-col-main">
+
+            @* --- Thẻ 1: Hồ sơ phỏng vấn --- *@
+            <section class="m5-card">
+                <header class="m5-card-head">
+                    <h2>Hồ sơ phỏng vấn</h2>
+                    <p>Chỉ chọn hồ sơ Đạt sơ tuyển chưa có lịch hiệu lực.</p>
+                </header>
+
+                <div class="m5-field">
+                    <label asp-for="MaHoSo" class="m5-label">Hồ sơ xét tuyển <span class="m5-req">*</span></label>
+                    <div class="m5-control">
+                        <select asp-for="MaHoSo" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsHoSo" class="m5-input">
+                            <option value="">-- Chọn hồ sơ --</option>
+                        </select>
+                        <span class="m5-icon-end"><partial name="_M5Icon" model='("chevron-down", 16)' /></span>
+                    </div>
+                    <span asp-validation-for="MaHoSo" class="m5-error"></span>
+                </div>
+
+                @* Tóm tắt hồ sơ đang chọn (cập nhật bằng JS, ẩn khi chưa chọn) *@
+                <div class="m5-summary" id="m5HoSoSummary" hidden>
+                    <div class="m5-summary-info">
+                        <span class="m5-summary-label">Hồ sơ đã chọn</span>
+                        <strong id="m5HoSoText"></strong>
+                    </div>
+                    <div class="m5-summary-status">
+                        <span class="m5-pill m5-pill-warn">Đạt sơ tuyển</span>
+                        <span class="m5-ok-note">Chưa có lịch hiệu lực</span>
+                    </div>
+                </div>
+            </section>
+
+            @* --- Thẻ 2: Thông tin lịch phỏng vấn --- *@
+            <section class="m5-card">
+                <header class="m5-card-head">
+                    <h2>Thông tin lịch phỏng vấn</h2>
+                    <p>Các trường có dấu * là bắt buộc · Múi giờ GMT+7</p>
+                </header>
+
+                <div class="m5-row-2">
+                    <div class="m5-field">
+                        <label asp-for="ThoiGianBatDau" class="m5-label">Ngày giờ bắt đầu <span class="m5-req">*</span></label>
+                        <input asp-for="ThoiGianBatDau" type="datetime-local" class="m5-input" />
+                        <span asp-validation-for="ThoiGianBatDau" class="m5-error"></span>
+                        <span class="m5-hint">Ngày và giờ địa phương · GMT+7</span>
+                    </div>
+                    <div class="m5-field">
+                        <label asp-for="ThoiGianKetThuc" class="m5-label">Ngày giờ kết thúc <span class="m5-req">*</span></label>
+                        <input asp-for="ThoiGianKetThuc" type="datetime-local" class="m5-input" />
+                        <span asp-validation-for="ThoiGianKetThuc" class="m5-error"></span>
+                        <span class="m5-hint" id="m5DurationHint">Sau thời điểm bắt đầu</span>
+                    </div>
+                </div>
+
+                <div class="m5-field">
+                    <span class="m5-label">Hình thức <span class="m5-req">*</span></span>
+                    <div class="m5-row-2 m5-row-tight">
+                        <label class="m5-radio">
+                            <input asp-for="HinhThucPhongVan" type="radio" value="Trực tiếp" />
+                            <span class="m5-radio-on"><partial name="_M5Icon" model='("circle-dot", 17)' /></span>
+                            <span class="m5-radio-off"><partial name="_M5Icon" model='("circle", 17)' /></span>
+                            Trực tiếp
+                        </label>
+                        <label class="m5-radio">
+                            <input asp-for="HinhThucPhongVan" type="radio" value="Trực tuyến" />
+                            <span class="m5-radio-on"><partial name="_M5Icon" model='("circle-dot", 17)' /></span>
+                            <span class="m5-radio-off"><partial name="_M5Icon" model='("circle", 17)' /></span>
+                            Trực tuyến
+                        </label>
+                    </div>
+                    <span asp-validation-for="HinhThucPhongVan" class="m5-error"></span>
+                </div>
+
+                <div class="m5-field">
+                    <label asp-for="DiaDiemHoacLienKet" class="m5-label"><span id="m5DiaDiemText">Địa điểm</span> <span class="m5-req">*</span></label>
+                    <div class="m5-control">
+                        <input asp-for="DiaDiemHoacLienKet" class="m5-input" placeholder="Ví dụ: Phòng A.306 · Cơ sở Hà Nội" />
+                        <span class="m5-icon-end"><partial name="_M5Icon" model='("map-pin", 16)' /></span>
+                    </div>
+                    <span asp-validation-for="DiaDiemHoacLienKet" class="m5-error"></span>
+                    <span class="m5-hint" id="m5DiaDiemHint">Nếu chọn Trực tuyến, trường này được thay bằng Liên kết phỏng vấn bắt buộc.</span>
+                </div>
+
+                <div class="m5-field">
+                    <label asp-for="MaNguoiPhongVan" class="m5-label">Người phỏng vấn <span class="m5-req">*</span></label>
+                    <div class="m5-control">
+                        <select asp-for="MaNguoiPhongVan" asp-items="(IEnumerable<SelectListItem>)ViewBag.DsNguoiPhongVan" class="m5-input">
+                            <option value="">-- Chọn người phỏng vấn --</option>
+                        </select>
+                        <span class="m5-icon-end"><partial name="_M5Icon" model='("chevron-down", 16)' /></span>
+                    </div>
+                    <span asp-validation-for="MaNguoiPhongVan" class="m5-error"></span>
+                </div>
+
+                <div class="m5-field">
+                    <label asp-for="GhiChu" class="m5-label">Ghi chú</label>
+                    <textarea asp-for="GhiChu" class="m5-input m5-textarea" rows="4"
+                              placeholder="Nội dung phỏng vấn, giấy tờ cần mang, thời gian có mặt..."></textarea>
+                    <span asp-validation-for="GhiChu" class="m5-error"></span>
+                </div>
+            </section>
+
+            @* --- Thanh lưu --- *@
+            <div class="m5-card m5-savebar">
+                <div class="m5-savebar-text">
+                    @if (coLoi)
+                    {
+                        <div class="m5-savebar-title m5-text-danger">Chưa thể lưu lịch</div>
+                        <div class="m5-savebar-sub">Cần xử lý @dsLoi.Count lỗi trước khi lưu.</div>
+                    }
+                    else
+                    {
+                        <div class="m5-savebar-title">Kiểm tra lại thông tin</div>
+                        <div class="m5-savebar-sub">Hệ thống sẽ kiểm tra trùng lịch khi lưu.</div>
+                    }
+                </div>
+                <a asp-action="Index" class="m5-btn m5-btn-outline">Hủy</a>
+                <button type="submit" class="m5-btn m5-btn-primary">
+                    <partial name="_M5Icon" model='("save", 16)' />
+                    Lưu lịch phỏng vấn
+                </button>
+            </div>
+        </div>
+
+        @* ===== Cột phải: kiểm tra & điều kiện ===== *@
+        <aside class="m5-col-side">
+
+            @if (coLoi)
+            {
+                <section class="m5-card">
+                    <header class="m5-card-head">
+                        <h2>Kết quả kiểm tra</h2>
+                        <p>Các vấn đề cần xử lý trước khi lưu lịch</p>
+                    </header>
+                    <div class="m5-conflict">
+                        <ul>
+                            @foreach (var loi in dsLoi)
+                            {
+                                <li>
+                                    <span class="m5-text-danger"><partial name="_M5Icon" model='("circle-alert", 16)' /></span>
+                                    <span>@loi</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </section>
+            }
+
+            <section class="m5-card">
+                <header class="m5-card-head">
+                    <h2>Điều kiện lập lịch</h2>
+                </header>
+                <ul class="m5-checklist">
+                    <li><span class="m5-text-ok"><partial name="_M5Icon" model='("circle-check", 16)' /></span> Hồ sơ Đạt sơ tuyển, chưa có lịch hiệu lực.</li>
+                    <li><span class="m5-text-ok"><partial name="_M5Icon" model='("circle-check", 16)' /></span> Kết thúc phải sau bắt đầu.</li>
+                    <li><span class="m5-text-ok"><partial name="_M5Icon" model='("circle-check", 16)' /></span> Không lập lịch trong quá khứ.</li>
+                    <li><span class="m5-text-ok"><partial name="_M5Icon" model='("circle-check", 16)' /></span> Không trùng lịch thí sinh hoặc người phỏng vấn.</li>
+                </ul>
+                <p class="m5-hint">Bỏ qua lịch Đã hủy khi kiểm tra trùng.</p>
+            </section>
+
+            <div class="m5-notice">
+                <span class="m5-notice-icon"><partial name="_M5Icon" model='("info", 18)' /></span>
+                <div>
+                    <strong>Sau khi tạo thành công</strong>
+                    <p>Lịch ở trạng thái Đã lên lịch; hồ sơ chuyển từ Đạt sơ tuyển sang Chờ phỏng vấn.</p>
+                </div>
+            </div>
+        </aside>
+    </form>
 </div>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        (function () {
+            // 1) Tóm tắt hồ sơ đang chọn
+            var hoSo = document.getElementById('MaHoSo');
+            var box = document.getElementById('m5HoSoSummary');
+            var txt = document.getElementById('m5HoSoText');
+            function syncHoSo() {
+                var o = hoSo.options[hoSo.selectedIndex];
+                if (o && o.value) { txt.textContent = o.text; box.hidden = false; }
+                else { box.hidden = true; }
+            }
+            hoSo.addEventListener('change', syncHoSo);
+            syncHoSo();
+
+            // 2) Hiện số phút giữa bắt đầu và kết thúc
+            var bd = document.getElementById('ThoiGianBatDau');
+            var kt = document.getElementById('ThoiGianKetThuc');
+            var hint = document.getElementById('m5DurationHint');
+            function syncDuration() {
+                hint.classList.remove('m5-text-danger');
+                if (!bd.value || !kt.value) { hint.textContent = 'Sau thời điểm bắt đầu'; return; }
+                var phut = Math.round((new Date(kt.value) - new Date(bd.value)) / 60000);
+                if (phut > 0) { hint.textContent = 'Sau thời điểm bắt đầu · ' + phut + ' phút'; }
+                else { hint.textContent = 'Phải sau thời điểm bắt đầu'; hint.classList.add('m5-text-danger'); }
+            }
+            bd.addEventListener('input', syncDuration);
+            kt.addEventListener('input', syncDuration);
+            syncDuration();
+
+            // 3) Đổi nhãn Địa điểm <-> Liên kết theo hình thức
+            var radios = document.querySelectorAll('input[name="HinhThucPhongVan"]');
+            var nhan = document.getElementById('m5DiaDiemText');
+            var oNhap = document.getElementById('DiaDiemHoacLienKet');
+            var goiY = document.getElementById('m5DiaDiemHint');
+            function syncHinhThuc() {
+                var chon = document.querySelector('input[name="HinhThucPhongVan"]:checked');
+                var online = chon && chon.value === 'Trực tuyến';
+                nhan.textContent = online ? 'Liên kết phỏng vấn' : 'Địa điểm';
+                oNhap.placeholder = online ? 'Dán đường dẫn họp trực tuyến (Zoom, Meet, Teams...)' : 'Ví dụ: Phòng A.306 · Cơ sở Hà Nội';
+                goiY.textContent = online ? 'Hình thức Trực tuyến: bắt buộc nhập liên kết phòng họp.' : 'Nếu chọn Trực tuyến, trường này được thay bằng Liên kết phỏng vấn bắt buộc.';
+            }
+            radios.forEach(function (r) { r.addEventListener('change', syncHinhThuc); });
+            syncHinhThuc();
+        })();
+    </script>
 }
