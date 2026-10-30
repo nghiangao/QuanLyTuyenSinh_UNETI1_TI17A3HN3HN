@@ -1,0 +1,33 @@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.Khoa
+
+@{
+    ViewData["Title"] = "Xóa khoa";
+    var hasDepartments = Model.NganhTuyenSinhs.Any();
+}
+
+<h1 class="mb-3">Xóa khoa</h1>
+@if (hasDepartments)
+{
+    <div class="alert alert-warning">
+        Khoa này đang có @Model.NganhTuyenSinhs.Count ngành tuyển sinh nên không thể xóa. Hãy chuyển khoa sang trạng thái ngừng hoạt động nếu không còn sử dụng.
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">Bạn có chắc chắn muốn xóa khoa này không?</div>
+}
+<dl class="row">
+    <dt class="col-sm-3">Tên khoa</dt>
+    <dd class="col-sm-9">@Model.TenKhoa</dd>
+    <dt class="col-sm-3">Email liên hệ</dt>
+    <dd class="col-sm-9">@(Model.EmailLienHe ?? "—")</dd>
+    <dt class="col-sm-3">Số ngành</dt>
+    <dd class="col-sm-9">@Model.NganhTuyenSinhs.Count</dd>
+</dl>
+@if (!hasDepartments)
+{
+    <form asp-action="Delete" asp-route-id="@Model.MaKhoa" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger">Xóa khoa</button>
+    </form>
+}
+<a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>

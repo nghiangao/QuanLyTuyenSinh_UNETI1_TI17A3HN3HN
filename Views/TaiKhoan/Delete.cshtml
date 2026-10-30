@@ -1,0 +1,20 @@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.TaiKhoanFormViewModel
+
+@{
+    ViewData["Title"] = "Xóa tài khoản";
+}
+
+<h1 class="mb-3">Xóa tài khoản</h1>
+<div class="alert alert-warning">Bạn có chắc chắn muốn xóa tài khoản này? Tài khoản gắn với hồ sơ thí sinh sẽ không thể xóa.</div>
+<dl class="row">
+    <dt class="col-sm-3">Tên đăng nhập</dt>
+    <dd class="col-sm-9">@Model.TenDangNhap</dd>
+    <dt class="col-sm-3">Họ tên</dt>
+    <dd class="col-sm-9">@Model.HoTen</dd>
+    <dt class="col-sm-3">Vai trò</dt>
+    <dd class="col-sm-9">@Model.VaiTro</dd>
+</dl>
+<form asp-action="Delete" asp-route-id="@Model.MaTaiKhoan" method="post">
+    <button type="submit" class="btn btn-danger">Xóa tài khoản</button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+</form>

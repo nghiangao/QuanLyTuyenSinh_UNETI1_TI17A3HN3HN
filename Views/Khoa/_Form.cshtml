@@ -1,0 +1,23 @@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.Khoa
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<input asp-for="MaKhoa" type="hidden" />
+<div class="mb-3">
+    <label asp-for="TenKhoa" class="form-label"></label>
+    <input asp-for="TenKhoa" class="form-control" />
+    <span asp-validation-for="TenKhoa" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="EmailLienHe" class="form-label"></label>
+    <input asp-for="EmailLienHe" class="form-control" type="email" />
+    <span asp-validation-for="EmailLienHe" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="MoTa" class="form-label"></label>
+    <textarea asp-for="MoTa" class="form-control" rows="4"></textarea>
+    <span asp-validation-for="MoTa" class="text-danger"></span>
+</div>
+<div class="form-check mb-3">
+    <input asp-for="TrangThai" class="form-check-input" />
+    <label asp-for="TrangThai" class="form-check-label"></label>
+</div>
