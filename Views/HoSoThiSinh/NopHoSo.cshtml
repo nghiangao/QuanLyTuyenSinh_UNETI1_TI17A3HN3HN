@@ -1,0 +1,77 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.3 - Nộp hồ sơ xét tuyển.
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.HoSoXetTuyen
+
+@{
+    ViewData["Title"] = "Nộp hồ sơ xét tuyển";
+}
+
+<div class="container py-3" style="max-width: 850px">
+    <h2 class="text-primary mb-3">Nộp hồ sơ xét tuyển</h2>
+
+    <div class="alert alert-info">
+        <strong>Ngành đăng ký:</strong> @ViewBag.TenNganh
+        <br />
+        Ngày nộp và trạng thái hồ sơ sẽ do hệ thống tự động xác định.
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <form asp-controller="HoSoThiSinh"
+          asp-action="NopHoSo"
+          asp-route-maNganh="@ViewBag.MaNganh"
+          method="post"
+          class="card shadow-sm">
+
+        @Html.AntiForgeryToken()
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="NguyenVongXetTuyen"
+                       class="form-label"></label>
+                <textarea asp-for="NguyenVongXetTuyen"
+                          class="form-control"
+                          rows="4"
+                          placeholder="Nhập nguyện vọng xét tuyển..."
+                          required></textarea>
+                <span asp-validation-for="NguyenVongXetTuyen"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="GhiChu" class="form-label"></label>
+                <textarea asp-for="GhiChu"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Ghi chú thêm nếu có"></textarea>
+                <span asp-validation-for="GhiChu"
+                      class="text-danger"></span>
+            </div>
+
+            <p class="text-muted">
+                Khi nộp thành công, hồ sơ sẽ ở trạng thái
+                <strong>Chờ duyệt</strong>.
+            </p>
+        </div>
+
+        <div class="card-footer bg-white">
+            <button type="submit" class="btn btn-primary">
+                Nộp hồ sơ
+            </button>
+
+            <a asp-controller="NganhTuyenSinh"
+               asp-action="Details"
+               asp-route-id="@ViewBag.MaNganh"
+               class="btn btn-outline-secondary">
+                Quay lại ngành
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

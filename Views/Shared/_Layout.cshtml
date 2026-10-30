@@ -58,7 +58,16 @@
                                 </a>
                             </li>
                         }
-
+                        @if (User.IsInRole("Thí sinh"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark"
+                                   asp-controller="HoSoThiSinh"
+                                   asp-action="TheoDoi">
+                                    Hồ sơ của tôi
+                                </a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Khoa" asp-action="Index">Khoa</a>
                         </li>

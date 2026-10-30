@@ -1,0 +1,122 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.5 - Theo dõi hồ sơ xét tuyển.
+*@
+@model IEnumerable<QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.HoSoXetTuyen>
+
+@{
+    ViewData["Title"] = "Theo dõi hồ sơ";
+}
+
+<div class="container-fluid py-3">
+    <h2 class="text-primary mb-3">Hồ sơ xét tuyển của tôi</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Mã hồ sơ</th>
+                    <th>Ngành đăng ký</th>
+                    <th>Khoa</th>
+                    <th>Ngày nộp</th>
+                    <th>Trạng thái</th>
+                    <th>Lịch phỏng vấn</th>
+                    <th>Kết quả</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            Bạn chưa nộp hồ sơ xét tuyển nào.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        var coLich = item.LichPhongVans.Any(
+                            l => l.TrangThai != TrangThaiLich.DaHuy);
+
+                        var duocHuy =
+                            item.TrangThai == TrangThaiHoSo.ChoDuyet
+                            || (item.TrangThai == TrangThaiHoSo.DatSoTuyen
+                                && !coLich);
+
+                        <tr>
+                            <td>@item.MaHoSo</td>
+                            <td>@(item.NganhTuyenSinh?.TenNganh ?? "Không có dữ liệu")</td>
+                            <td>@(item.NganhTuyenSinh?.Khoa?.TenKhoa ?? "Không có dữ liệu")</td>
+                            <td>@item.NgayNop.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge bg-primary">
+                                    @item.TrangThai
+                                </span>
+                            </td>
+                            <td>
+                                @if (coLich)
+                                {
+                                    <span>Đã có lịch</span>
+                                }
+                                else
+                                {
+                                    <span>Chưa có lịch</span>
+                                }
+                            </td>
+                            <td>
+                                @(item.KetQuaXetTuyen?.KetQua ?? "Chưa có kết quả")
+                            </td>
+                            <td>
+                                <a asp-action="ChiTiet"
+                                   asp-route-id="@item.MaHoSo"
+                                   class="btn btn-sm btn-outline-primary mb-1">
+                                    Chi tiết
+                                </a>
+
+                                @if (duocHuy)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="document.getElementById('xacNhanHuy').style.display='flex';
+                                                     document.getElementById('maHuy').value='@item.MaHoSo'">
+                                        Hủy hồ sơ
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="xacNhanHuy" style="display:none; position:fixed; inset:0;
+     background:#0008; z-index:9999; align-items:center; justify-content:center">
+    <div class="bg-white p-4 rounded-3 text-center">
+        <h5>Xác nhận hủy hồ sơ?</h5>
+        <p>Bạn có chắc muốn hủy hồ sơ này không?</p>
+
+        <button class="btn btn-secondary" onclick="document.getElementById('xacNhanHuy').style.display='none'">
+            Không
+        </button>
+
+        <form asp-action="Huy" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="maHuy" />
+            <button class="btn btn-danger">Có, hủy hồ sơ</button>
+        </form>
+    </div>
+</div>

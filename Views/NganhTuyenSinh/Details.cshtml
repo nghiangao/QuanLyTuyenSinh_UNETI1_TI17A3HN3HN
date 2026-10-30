@@ -56,3 +56,12 @@
     <p class="text-muted">Ngành này hiện chưa đủ điều kiện để nhận hồ sơ.</p>
 }
 <a asp-action="CongKhai" class="btn btn-outline-secondary">Danh sách ngành</a>
+@if (User.IsInRole(VaiTro.ThiSinh) && dangNhanHoSo)
+{
+    <a asp-controller="HoSoThiSinh"
+       asp-action="NopHoSo"
+       asp-route-maNganh="@Model.MaNganh"
+       class="btn btn-success">
+        Nộp hồ sơ xét tuyển
+    </a>
+}

@@ -1,0 +1,155 @@
+@*
+    Họ và tên: Giang Mạnh Tường
+    Mã sinh viên: 23103100155
+    Nội dung thực hiện: Module 3.5 - Chi tiết và theo dõi hồ sơ.
+*@
+@model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.HoSoXetTuyen
+
+@{
+    ViewData["Title"] = "Chi tiết hồ sơ";
+
+    var coLich = Model.LichPhongVans.Any(
+        l => l.TrangThai != TrangThaiLich.DaHuy);
+
+    var duocHuy =
+        Model.TrangThai == TrangThaiHoSo.ChoDuyet
+        || (Model.TrangThai == TrangThaiHoSo.DatSoTuyen
+            && !coLich);
+}
+
+<div class="container py-3" style="max-width: 950px">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">Chi tiết hồ sơ xét tuyển</h2>
+
+        <a asp-action="TheoDoi" class="btn btn-outline-secondary">
+            Quay lại
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Thông tin hồ sơ
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Mã hồ sơ</dt>
+                <dd class="col-sm-8">@Model.MaHoSo</dd>
+
+                <dt class="col-sm-4">Ngành đăng ký</dt>
+                <dd class="col-sm-8">@Model.NganhTuyenSinh?.TenNganh</dd>
+
+                <dt class="col-sm-4">Khoa</dt>
+                <dd class="col-sm-8">@Model.NganhTuyenSinh?.Khoa?.TenKhoa</dd>
+
+                <dt class="col-sm-4">Ngày nộp</dt>
+                <dd class="col-sm-8">@Model.NgayNop.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4">Nguyện vọng</dt>
+                <dd class="col-sm-8">@Model.NguyenVongXetTuyen</dd>
+
+                <dt class="col-sm-4">Ghi chú</dt>
+                <dd class="col-sm-8">@(Model.GhiChu ?? "Không có")</dd>
+
+                <dt class="col-sm-4">Trạng thái</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-primary">@Model.TrangThai</span>
+                </dd>
+
+                <dt class="col-sm-4">Ngày xử lý</dt>
+                <dd class="col-sm-8">
+                    @(Model.NgayXuLy?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa xử lý")
+                </dd>
+
+                <dt class="col-sm-4">Nhận xét sơ tuyển</dt>
+                <dd class="col-sm-8">
+                    @(Model.NhanXetSoTuyen ?? "Chưa có nhận xét")
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Lịch phỏng vấn</div>
+        <div class="card-body">
+            @if (!coLich)
+            {
+                <p class="mb-0">Chưa có lịch phỏng vấn đang hiệu lực.</p>
+            }
+            else
+            {
+                @foreach (var lich in Model.LichPhongVans
+                    .Where(l => l.TrangThai != TrangThaiLich.DaHuy)
+                    .OrderBy(l => l.ThoiGianBatDau))
+                {
+                    <dl class="row border-bottom pb-2">
+                        <dt class="col-sm-4">Thời gian bắt đầu</dt>
+                        <dd class="col-sm-8">
+                            @lich.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")
+                        </dd>
+
+                        <dt class="col-sm-4">Thời gian kết thúc</dt>
+                        <dd class="col-sm-8">
+                            @lich.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")
+                        </dd>
+
+                        <dt class="col-sm-4">Hình thức</dt>
+                        <dd class="col-sm-8">@lich.HinhThucPhongVan</dd>
+
+                        <dt class="col-sm-4">Địa điểm / Liên kết</dt>
+                        <dd class="col-sm-8">
+                            @(lich.DiaDiemHoacLienKet ?? "Chưa cập nhật")
+                        </dd>
+
+                        <dt class="col-sm-4">Trạng thái lịch</dt>
+                        <dd class="col-sm-8">@lich.TrangThai</dd>
+                    </dl>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Kết quả xét tuyển</div>
+        <div class="card-body">
+            @if (Model.KetQuaXetTuyen == null)
+            {
+                <p class="mb-0">Chưa có kết quả xét tuyển được công bố.</p>
+            }
+            else
+            {
+                <dl class="row">
+                    <dt class="col-sm-4">Kết quả</dt>
+                    <dd class="col-sm-8">@Model.KetQuaXetTuyen.KetQua</dd>
+
+                    <dt class="col-sm-4">Điểm đánh giá</dt>
+                    <dd class="col-sm-8">
+                        @(Model.KetQuaXetTuyen.DiemDanhGia?.ToString("0.##") ?? "Chưa có")
+                    </dd>
+
+                    <dt class="col-sm-4">Nhận xét</dt>
+                    <dd class="col-sm-8">
+                        @(Model.KetQuaXetTuyen.NhanXet ?? "Không có")
+                    </dd>
+
+                    <dt class="col-sm-4">Ngày cập nhật</dt>
+                    <dd class="col-sm-8">
+                        @Model.KetQuaXetTuyen.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")
+                    </dd>
+                </dl>
+            }
+        </div>
+    </div>
+
+    @if (duocHuy)
+    {
+        <form asp-action="Huy"
+              asp-route-id="@Model.MaHoSo"
+              method="post"
+              onsubmit="return confirm('Bạn có chắc muốn hủy hồ sơ này?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">
+                Hủy hồ sơ
+            </button>
+        </form>
+    }
+</div>
