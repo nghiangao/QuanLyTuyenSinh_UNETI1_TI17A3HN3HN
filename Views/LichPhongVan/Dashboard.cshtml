@@ -2,201 +2,126 @@
     Họ và tên: Mã Đức Thịnh
     Mã sinh viên: 23103100314
     Nội dung thực hiện: Module 5 - Giao diện Dashboard 9 chỉ số tổng quan tuyển sinh (Đề mục 9.5).
+    Giao diện mới theo thiết kế Figma "Tổng quan tuyển sinh" (giữ nguyên DashboardViewModel).
 *@
 @model DashboardViewModel
 
 @{
-    ViewData["Title"] = "Dashboard Tuyển Sinh";
+    ViewData["Title"] = "Tổng quan tuyển sinh";
+    Layout = "_LayoutModule5";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1 text-primary fw-bold">📊 Dashboard Tuyển Sinh</h2>
-        <p class="text-muted mb-0">Hệ thống giám sát và tổng hợp 9 chỉ số tuyển sinh theo thời gian thực</p>
-    </div>
-    <div>
-        <a asp-action="ThongKe" class="btn btn-outline-primary me-2">📈 Xem báo cáo thống kê</a>
-        <a asp-action="Index" class="btn btn-primary">📅 Quản lý lịch phỏng vấn</a>
-    </div>
+<div class="m5-breadcrumb">
+    <span>Điều hành tuyển sinh &nbsp;/&nbsp; Module 5 &nbsp;/&nbsp; Tổng quan tuyển sinh</span>
 </div>
 
-@* =========================================================================
-   9 CHỈ SỐ DASHBOARD TỔNG QUAN (Đề mục 9.5)
-   ========================================================================= *@
-<div class="row g-3 mb-4">
-    @* 1. Tổng số khoa *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">1. Tổng số khoa</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoKhoa</div>
-                    </div>
-                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle fs-3">🏛️</div>
-                </div>
-                <div class="small text-muted mt-2">Dữ liệu đơn vị đào tạo</div>
-            </div>
-        </div>
+<div class="m5-pagehead">
+    <div class="m5-pagehead__text">
+        <h1>Tổng quan tuyển sinh</h1>
+        <p>Theo dõi hồ sơ, lịch phỏng vấn và tiến độ xét tuyển trong một không gian.</p>
     </div>
-
-    @* 2. Tổng số ngành *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">2. Tổng số ngành tuyển sinh</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoNganh</div>
-                    </div>
-                    <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle fs-3">🎓</div>
-                </div>
-                <div class="small text-muted mt-2">Toàn bộ các ngành mở tuyển sinh</div>
-            </div>
-        </div>
-    </div>
-
-    @* 3. Số ngành đang tuyển *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">3. Ngành đang tuyển</div>
-                        <div class="fs-2 fw-bold text-success mt-1">@Model.SoNganhDangTuyen</div>
-                    </div>
-                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-3">🟢</div>
-                </div>
-                <div class="small text-muted mt-2">Đang nhận hồ sơ trực tuyến</div>
-            </div>
-        </div>
-    </div>
-
-    @* 4. Tổng số thí sinh *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-secondary border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">4. Tổng số thí sinh</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoThiSinh</div>
-                    </div>
-                    <div class="p-3 bg-secondary bg-opacity-10 text-secondary rounded-circle fs-3">👥</div>
-                </div>
-                <div class="small text-muted mt-2">Thí sinh đã tạo hồ sơ cá nhân</div>
-            </div>
-        </div>
-    </div>
-
-    @* 5. Tổng số hồ sơ *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-dark border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">5. Tổng số hồ sơ</div>
-                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TongSoHoSo</div>
-                    </div>
-                    <div class="p-3 bg-dark bg-opacity-10 text-dark rounded-circle fs-3">📁</div>
-                </div>
-                <div class="small text-muted mt-2">Tổng số nguyện vọng đã nộp</div>
-            </div>
-        </div>
-    </div>
-
-    @* 6. Số hồ sơ chờ duyệt *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">6. Hồ sơ chờ duyệt</div>
-                        <div class="fs-2 fw-bold text-warning mt-1">@Model.SoHoSoChoDuyet</div>
-                    </div>
-                    <div class="p-3 bg-warning bg-opacity-10 text-warning rounded-circle fs-3">⏳</div>
-                </div>
-                <div class="small text-muted mt-2">Cần cán bộ tuyển sinh sơ tuyển</div>
-            </div>
-        </div>
-    </div>
-
-    @* 7. Số hồ sơ đạt sơ tuyển *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">7. Hồ sơ đạt sơ tuyển</div>
-                        <div class="fs-2 fw-bold text-primary mt-1">@Model.SoHoSoDatSoTuyen</div>
-                    </div>
-                    <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle fs-3">📝</div>
-                </div>
-                <div class="small text-muted mt-2">Đủ điều kiện để lập lịch phỏng vấn</div>
-            </div>
-        </div>
-    </div>
-
-    @* 8. Lịch phỏng vấn sắp tới *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">8. Lịch phỏng vấn sắp tới</div>
-                        <div class="fs-2 fw-bold text-info mt-1">@Model.SoLichPhongVanSapToi</div>
-                    </div>
-                    <div class="p-3 bg-info bg-opacity-10 text-info rounded-circle fs-3">⏰</div>
-                </div>
-                <div class="small text-muted mt-2">Đã lên lịch, chưa diễn ra</div>
-            </div>
-        </div>
-    </div>
-
-    @* 9. Số hồ sơ trúng tuyển *@
-    <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small fw-semibold text-uppercase">9. Hồ sơ trúng tuyển</div>
-                        <div class="fs-2 fw-bold text-success mt-1">@Model.SoHoSoTrungTuyen</div>
-                    </div>
-                    <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle fs-3">🏆</div>
-                </div>
-                <div class="small text-muted mt-2">Đạt kết quả trúng tuyển chính thức</div>
-            </div>
-        </div>
-    </div>
+    <a asp-action="ThongKe" class="m5-btn m5-btn--outline">
+        <partial name="_M5Icon" model='("chart-no-axes-combined", 16)' />
+        <span>Xem thống kê</span>
+    </a>
+    <a asp-action="Index" class="m5-btn m5-btn--primary">
+        <partial name="_M5Icon" model='("calendar-days", 16)' />
+        <span>Quản lý lịch phỏng vấn</span>
+    </a>
 </div>
 
-@* Lối tắt chuyển trang nhanh *@
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white fw-bold">
-        🚀 Lối tắt điều hướng theo quy trình nghiệp vụ
-    </div>
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-md-3">
-                <a asp-action="Create" class="btn btn-outline-primary w-100 py-2">
-                    ➕ Lập lịch phỏng vấn mới
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a asp-action="Index" asp-route-trangThai="@TrangThaiLich.DaLenLich" class="btn btn-outline-info w-100 py-2">
-                    📋 Lịch cần phỏng vấn
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a asp-action="ThongKe" class="btn btn-outline-success w-100 py-2">
-                    📊 Báo cáo phân tích LINQ
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a asp-action="LichCuaToi" class="btn btn-outline-secondary w-100 py-2">
-                    🔍 Màn tra cứu của thí sinh
-                </a>
-            </div>
+@* ===== 4 chỉ số trọng tâm: (5) Hồ sơ, (4) Thí sinh, (8) Lịch PV sắp tới, (9) Trúng tuyển ===== *@
+<section class="m5-grid m5-grid--4">
+    <article class="m5-kpi m5-kpi--primary">
+        <div class="m5-kpi__head">
+            <span class="m5-kpi__label">Tổng số hồ sơ</span>
+            <partial name="_M5Icon" model='("files", 19)' />
         </div>
-    </div>
-</div>
+        <div class="m5-kpi__value">@Model.TongSoHoSo</div>
+        <div class="m5-kpi__note">Tổng số nguyện vọng đã nộp</div>
+    </article>
 
+    <article class="m5-kpi">
+        <div class="m5-kpi__head">
+            <span class="m5-kpi__label">Tổng số thí sinh</span>
+            <partial name="_M5Icon" model='("users", 19)' />
+        </div>
+        <div class="m5-kpi__value">@Model.TongSoThiSinh</div>
+        <div class="m5-kpi__note">Thí sinh đã tạo hồ sơ cá nhân</div>
+    </article>
+
+    <article class="m5-kpi">
+        <div class="m5-kpi__head">
+            <span class="m5-kpi__label">Lịch phỏng vấn sắp tới</span>
+            <partial name="_M5Icon" model='("calendar-days", 19)' />
+        </div>
+        <div class="m5-kpi__value">@Model.SoLichPhongVanSapToi</div>
+        <div class="m5-kpi__note">Đã lên lịch, chưa diễn ra</div>
+    </article>
+
+    <article class="m5-kpi">
+        <div class="m5-kpi__head">
+            <span class="m5-kpi__label">Hồ sơ trúng tuyển</span>
+            <partial name="_M5Icon" model='("badge-check", 19)' />
+        </div>
+        <div class="m5-kpi__value">@Model.SoHoSoTrungTuyen</div>
+        <div class="m5-kpi__note">Đạt kết quả trúng tuyển chính thức</div>
+    </article>
+</section>
+
+@* ===== 5 chỉ số vận hành: (1) Khoa, (2) Ngành, (3) Ngành đang tuyển, (6) Chờ duyệt, (7) Đạt sơ tuyển ===== *@
+<section class="m5-grid m5-grid--5">
+    <article class="m5-metric">
+        <span class="m5-metric__label">Tổng số khoa</span>
+        <span class="m5-metric__value">@Model.TongSoKhoa</span>
+        <span class="m5-metric__note">Đơn vị đào tạo</span>
+    </article>
+    <article class="m5-metric">
+        <span class="m5-metric__label">Tổng số ngành tuyển sinh</span>
+        <span class="m5-metric__value">@Model.TongSoNganh</span>
+        <span class="m5-metric__note">Toàn bộ các ngành mở tuyển sinh</span>
+    </article>
+    <article class="m5-metric">
+        <span class="m5-metric__label">Ngành đang tuyển</span>
+        <span class="m5-metric__value">@Model.SoNganhDangTuyen</span>
+        <span class="m5-metric__note">Đang nhận hồ sơ trực tuyến</span>
+    </article>
+    <article class="m5-metric">
+        <span class="m5-metric__label">Hồ sơ chờ duyệt</span>
+        <span class="m5-metric__value">@Model.SoHoSoChoDuyet</span>
+        <span class="m5-metric__note">Cần kiểm tra sơ tuyển</span>
+    </article>
+    <article class="m5-metric">
+        <span class="m5-metric__label">Hồ sơ đạt sơ tuyển</span>
+        <span class="m5-metric__value">@Model.SoHoSoDatSoTuyen</span>
+        <span class="m5-metric__note">Đủ điều kiện lập lịch phỏng vấn</span>
+    </article>
+</section>
+
+@* ===== Lối tắt theo quy trình nghiệp vụ ===== *@
+<article class="m5-card">
+    <header class="m5-card__head">
+        <div>
+            <h2>Lối tắt theo quy trình nghiệp vụ</h2>
+            <p>Chuyển nhanh đến các thao tác thường dùng của cán bộ tuyển sinh</p>
+        </div>
+    </header>
+    <div class="m5-shortcuts">
+        <a asp-action="Create" class="m5-shortcut">
+            <partial name="_M5Icon" model='("calendar", 18)' />
+            <span>Lập lịch phỏng vấn mới</span>
+        </a>
+        <a asp-action="Index" asp-route-trangThai="@TrangThaiLich.DaLenLich" class="m5-shortcut">
+            <partial name="_M5Icon" model='("clipboard-check", 18)' />
+            <span>Lịch cần phỏng vấn</span>
+        </a>
+        <a asp-action="ThongKe" class="m5-shortcut">
+            <partial name="_M5Icon" model='("chart-no-axes-combined", 18)' />
+            <span>Báo cáo phân tích LINQ</span>
+        </a>
+        <a asp-action="LichCuaToi" class="m5-shortcut">
+            <partial name="_M5Icon" model='("users", 18)' />
+            <span>Màn tra cứu của thí sinh</span>
+        </a>
+    </div>
+</article>

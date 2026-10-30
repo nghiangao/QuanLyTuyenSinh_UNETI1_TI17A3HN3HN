@@ -1,0 +1,113 @@
+@using System.Security.Claims
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act  = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    var hoTen = User.Identity?.Name;
+    if (string.IsNullOrWhiteSpace(hoTen)) hoTen = "Cán bộ tuyển sinh";
+    var vaiTro = User.FindFirst(ClaimTypes.Role)?.Value ?? "Cán bộ tuyển sinh";
+    var chuCai = string.Concat(hoTen.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(p => p[0]).TakeLast(2)).ToUpper();
+
+    bool IsActive(string c, string a) => ctrl == c && act == a;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - UNETI Quản lý tuyển sinh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/module5.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="m5-body">
+    <header class="m5-topbar">
+        <a class="m5-brand" href="/">
+            <span class="m5-brand__logo"><partial name="_M5Icon" model='("graduation-cap", 24)' /></span>
+            <span class="m5-brand__text">
+                <span class="m5-brand__name">UNETI</span>
+                <span class="m5-brand__sub">QUẢN LÝ TUYỂN SINH</span>
+            </span>
+        </a>
+
+        <div class="m5-topbar__school">Trường Đại học Kinh tế - Kỹ thuật Công nghiệp</div>
+
+        <div class="m5-chip">
+            <partial name="_M5Icon" model='("calendar", 15)' />
+            <span>Đại học chính quy 2026</span>
+        </div>
+
+        <button type="button" class="m5-icon-btn" aria-label="Thông báo">
+            <partial name="_M5Icon" model='("bell", 18)' />
+        </button>
+
+        <span class="m5-topbar__sep"></span>
+
+        <div class="m5-account">
+            <span class="m5-avatar">@chuCai</span>
+            <span class="m5-account__info">
+                <span class="m5-account__name">@hoTen</span>
+                <span class="m5-account__role">@vaiTro</span>
+            </span>
+            <partial name="_M5Icon" model='("chevron-down", 14)' />
+        </div>
+    </header>
+
+    <div class="m5-workspace">
+        <aside class="m5-sidebar">
+            <div class="m5-sidebar__title">HỆ THỐNG TUYỂN SINH</div>
+
+            <a class="m5-nav m5-nav--general" asp-controller="Khoa" asp-action="Index">
+                <partial name="_M5Icon" model='("building-2", 17)' /><span>Danh mục đào tạo</span>
+            </a>
+            <a class="m5-nav m5-nav--general" asp-controller="ThiSinh" asp-action="Index">
+                <partial name="_M5Icon" model='("users", 17)' /><span>Thí sinh</span>
+            </a>
+            <a class="m5-nav m5-nav--general" asp-controller="HoSoXetTuyen" asp-action="Index">
+                <partial name="_M5Icon" model='("files", 17)' /><span>Hồ sơ xét tuyển</span>
+            </a>
+
+            <hr class="m5-sidebar__divider" />
+
+            <div class="m5-sidebar__module">
+                <div class="m5-sidebar__module-title">MODULE 5 · ĐIỀU HÀNH</div>
+
+                <a class="m5-nav m5-nav--module @(IsActive("LichPhongVan", "Dashboard") ? "is-active" : "")"
+                   asp-controller="LichPhongVan" asp-action="Dashboard">
+                    <partial name="_M5Icon" model='("layout-dashboard", 18)' /><span>Tổng quan</span>
+                </a>
+                <a class="m5-nav m5-nav--module @(IsActive("LichPhongVan", "Index") ? "is-active" : "")"
+                   asp-controller="LichPhongVan" asp-action="Index">
+                    <partial name="_M5Icon" model='("calendar-days", 18)' /><span>Lịch phỏng vấn</span>
+                </a>
+                <a class="m5-nav m5-nav--module" href="#">
+                    <partial name="_M5Icon" model='("clipboard-check", 18)' /><span>Kết quả xét tuyển</span>
+                </a>
+                <a class="m5-nav m5-nav--module @(IsActive("LichPhongVan", "ThongKe") ? "is-active" : "")"
+                   asp-controller="LichPhongVan" asp-action="ThongKe">
+                    <partial name="_M5Icon" model='("chart-no-axes-combined", 18)' /><span>Thống kê</span>
+                </a>
+            </div>
+
+            <div class="m5-datanote">
+                <strong>Kỳ tuyển sinh 2026</strong>
+                <span>Dữ liệu tại<br />@DateTime.Now.ToString("dd/MM/yyyy · HH:mm") (GMT+7)</span>
+            </div>
+        </aside>
+
+        <main class="m5-page">
+            @RenderBody()
+
+            <footer class="m5-pagefoot">
+                <span>UNETI · Hệ thống quản lý tuyển sinh và hồ sơ xét tuyển</span>
+                <span>Dữ liệu tại @DateTime.Now.ToString("dd/MM/yyyy, HH:mm") · GMT+7</span>
+            </footer>
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
