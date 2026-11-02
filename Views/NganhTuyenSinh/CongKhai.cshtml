@@ -10,6 +10,9 @@
     string? search = ViewBag.Search as string;
     int? maKhoa = ViewBag.MaKhoa as int?;
     string? toHop = ViewBag.ToHop as string;
+    string? trangThai = ViewBag.TrangThai as string;
+    decimal? diemToiThieu = ViewBag.DiemToiThieu as decimal?;
+    string? tinhTrangNhanHoSo = ViewBag.TinhTrangNhanHoSo as string;
     string? sort = ViewBag.Sort as string;
 }
 
@@ -34,6 +37,28 @@
         <input id="toHop" name="toHop" value="@toHop" class="form-control" />
     </div>
     <div class="col-6 col-md-2">
+        <label for="trangThai" class="form-label">Trạng thái ngành</label>
+        <select id="trangThai" name="trangThai" class="form-select">
+            <option value="">Tất cả</option>
+            @foreach (var state in new[] { TrangThaiNganh.ChuaMo, TrangThaiNganh.DangTuyen, TrangThaiNganh.TamDung, TrangThaiNganh.DaDong })
+            {
+                <option value="@state" selected="@(state == trangThai)">@state</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="diemToiThieu" class="form-label">Điểm tối thiểu từ</label>
+        <input id="diemToiThieu" name="diemToiThieu" type="number" min="0" max="30" step="0.01" value="@diemToiThieu" class="form-control" />
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="tinhTrangNhanHoSo" class="form-label">Thời hạn hồ sơ</label>
+        <select id="tinhTrangNhanHoSo" name="tinhTrangNhanHoSo" class="form-select">
+            <option value="">Tất cả</option>
+            <option value="conHan" selected="@(tinhTrangNhanHoSo == "conHan")">Đang nhận hồ sơ</option>
+            <option value="hetHan" selected="@(tinhTrangNhanHoSo == "hetHan")">Đã hết hạn</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
         <label for="sort" class="form-label">Sắp xếp</label>
         <select id="sort" name="sort" class="form-select">
             <option value="">Tên A-Z</option>
@@ -42,6 +67,15 @@
             <option value="han_desc" selected="@(sort == "han_desc")">Hạn nộp giảm</option>
             <option value="chiTieu_asc" selected="@(sort == "chiTieu_asc")">Chỉ tiêu tăng</option>
             <option value="chiTieu_desc" selected="@(sort == "chiTieu_desc")">Chỉ tiêu giảm</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label for="pageSize" class="form-label">Số dòng</label>
+        <select id="pageSize" name="pageSize" class="form-select">
+            @foreach (var size in new[] { 10, 20, 50, 100 })
+            {
+                <option value="@size" selected="@(size == (int)ViewBag.PageSize)">@size</option>
+            }
         </select>
     </div>
     <div class="col-12 d-flex gap-2">
@@ -98,16 +132,16 @@
     <span class="text-muted">@ViewBag.TotalItems ngành · Trang @ViewBag.Page / @ViewBag.TotalPages</span>
     <ul class="pagination mb-0">
         <li class="page-item @((int)ViewBag.Page <= 1 ? "disabled" : "")">
-            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page - 1)" asp-route-pageSize="@ViewBag.PageSize">Trước</a>
+            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-trangThai="@trangThai" asp-route-diemToiThieu="@diemToiThieu" asp-route-tinhTrangNhanHoSo="@tinhTrangNhanHoSo" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page - 1)" asp-route-pageSize="@ViewBag.PageSize">Trước</a>
         </li>
         @for (var pageNumber = 1; pageNumber <= (int)ViewBag.TotalPages; pageNumber++)
         {
             <li class="page-item @(pageNumber == (int)ViewBag.Page ? "active" : "")">
-                <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@pageNumber" asp-route-pageSize="@ViewBag.PageSize">@pageNumber</a>
+                <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-trangThai="@trangThai" asp-route-diemToiThieu="@diemToiThieu" asp-route-tinhTrangNhanHoSo="@tinhTrangNhanHoSo" asp-route-sort="@sort" asp-route-page="@pageNumber" asp-route-pageSize="@ViewBag.PageSize">@pageNumber</a>
             </li>
         }
         <li class="page-item @((int)ViewBag.Page >= (int)ViewBag.TotalPages ? "disabled" : "")">
-            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page + 1)" asp-route-pageSize="@ViewBag.PageSize">Sau</a>
+            <a class="page-link" asp-action="CongKhai" asp-route-search="@search" asp-route-maKhoa="@maKhoa" asp-route-toHop="@toHop" asp-route-trangThai="@trangThai" asp-route-diemToiThieu="@diemToiThieu" asp-route-tinhTrangNhanHoSo="@tinhTrangNhanHoSo" asp-route-sort="@sort" asp-route-page="@((int)ViewBag.Page + 1)" asp-route-pageSize="@ViewBag.PageSize">Sau</a>
         </li>
     </ul>
 </nav>
