@@ -85,12 +85,12 @@ public class NganhTuyenSinhController : Controller
 
         query = sort switch
         {
-            "ten_desc" => query.OrderByDescending(n => n.TenNganh),
+            "ten_desc" => query.OrderByDescending(n => n.TenNganh).ThenBy(n => n.MaNganh),
             "han_asc" => query.OrderBy(n => n.HanNopHoSo).ThenBy(n => n.TenNganh),
             "han_desc" => query.OrderByDescending(n => n.HanNopHoSo).ThenBy(n => n.TenNganh),
             "chiTieu_asc" => query.OrderBy(n => n.ChiTieu).ThenBy(n => n.TenNganh),
             "chiTieu_desc" => query.OrderByDescending(n => n.ChiTieu).ThenBy(n => n.TenNganh),
-            _ => query.OrderBy(n => n.TenNganh)
+            _ => query.OrderBy(n => n.TenNganh).ThenBy(n => n.MaNganh)
         };
 
         var totalItems = await query.CountAsync();
@@ -120,10 +120,16 @@ public class NganhTuyenSinhController : Controller
         string? search,
         int? maKhoa,
         string? toHop,
+        string? trangThai,
+        decimal? diemToiThieu,
+        string? tinhTrangNhanHoSo,
         string? sort,
         int page = 1,
         int pageSize = DefaultPageSize)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
+        var today = DateTime.Today;
         var query = _context.NganhTuyenSinhs
             .Include(n => n.Khoa)
             .AsNoTracking()
@@ -145,6 +151,23 @@ public class NganhTuyenSinhController : Controller
             query = query.Where(n => n.ToHopXetTuyen.Contains(toHop));
         }
 
+        if (!string.IsNullOrWhiteSpace(trangThai))
+            query = query.Where(n => n.TrangThai == trangThai);
+
+        if (diemToiThieu.HasValue)
+            query = query.Where(n => n.DiemXetTuyenToiThieu >= diemToiThieu.Value);
+
+        if (tinhTrangNhanHoSo == "conHan")
+        {
+            query = query.Where(n => n.TrangThai == TrangThaiNganh.DangTuyen
+                && today >= n.NgayBatDauNhanHoSo.Date
+                && today <= n.HanNopHoSo.Date);
+        }
+        else if (tinhTrangNhanHoSo == "hetHan")
+        {
+            query = query.Where(n => today > n.HanNopHoSo.Date);
+        }
+
         query = sort switch
         {
             "ten_desc" => query.OrderByDescending(n => n.TenNganh).ThenBy(n => n.MaNganh),
@@ -155,8 +178,6 @@ public class NganhTuyenSinhController : Controller
             _ => query.OrderBy(n => n.TenNganh).ThenBy(n => n.MaNganh)
         };
 
-        page = Math.Max(page, 1);
-        pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
         var totalItems = await query.CountAsync();
         var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)pageSize), 1);
         page = Math.Min(page, totalPages);
@@ -165,6 +186,9 @@ public class NganhTuyenSinhController : Controller
         ViewBag.Search = search;
         ViewBag.MaKhoa = maKhoa;
         ViewBag.ToHop = toHop;
+        ViewBag.TrangThai = trangThai;
+        ViewBag.DiemToiThieu = diemToiThieu;
+        ViewBag.TinhTrangNhanHoSo = tinhTrangNhanHoSo;
         ViewBag.Sort = sort;
         ViewBag.Page = page;
         ViewBag.PageSize = pageSize;
@@ -305,6 +329,8 @@ public class NganhTuyenSinhController : Controller
                 || nganh.ChiTieu <= 0
                 || nganh.DiemXetTuyenToiThieu < 0
                 || nganh.DiemXetTuyenToiThieu > 30
+                || nganh.NgayBatDauNhanHoSo == default
+                || nganh.HanNopHoSo == default
                 || nganh.HanNopHoSo.Date < nganh.NgayBatDauNhanHoSo.Date))
         {
             ModelState.AddModelError(nameof(nganh.TrangThai), "Không thể chuyển sang Đang tuyển khi dữ liệu ngành chưa hợp lệ.");
