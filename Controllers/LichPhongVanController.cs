@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -26,6 +27,7 @@ using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models;
 
 namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Controllers
 {
+    [Authorize(Roles = VaiTro.Admin + "," + VaiTro.CanBoTuyenSinh)]
     public class LichPhongVanController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -386,6 +388,7 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Controllers
         // M5.4: THÍ SINH TRA CỨU LỊCH PHỎNG VẤN VÀ KẾT QUẢ CỦA CHÍNH MÌNH
         // =========================================================================
         // GET: LichPhongVan/LichCuaToi?tuKhoa=...
+        [AllowAnonymous]
         public async Task<IActionResult> LichCuaToi(string? tuKhoa)
         {
             var model = new TraCuuThiSinhViewModel
