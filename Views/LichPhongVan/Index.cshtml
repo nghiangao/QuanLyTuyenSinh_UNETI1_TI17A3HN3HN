@@ -1,107 +1,812 @@
 @*
     Họ và tên: Mã Đức Thịnh
     Mã sinh viên: 23103100314
-    Nội dung thực hiện: Module 5 - Giao diện danh sách lịch phỏng vấn, lọc theo trạng thái,
-    nút Chi tiết luôn hiển thị; nút Hoàn thành / Hủy chỉ hiện khi "Đã lên lịch";
-    nút Nhập kết quả hiện khi lịch hoàn thành và hồ sơ đang "Đã phỏng vấn".
+    Nội dung thực hiện: Module 5 - Giao diện "Quản lý lịch phỏng vấn" (theo thiết kế Figma 23).
+    - Tìm kiếm, sắp xếp, bộ lọc nâng cao (thời gian / trạng thái / hình thức), phân trang giữ điều kiện lọc.
+    - Bảng danh sách: bấm dòng để xem "Chi tiết đang chọn" + "Lịch sử của hồ sơ".
+    - Hoàn thành / Hủy chỉ dùng được khi "Đã lên lịch" (có hộp xác nhận); lịch đã hủy chỉ xem.
+    - Nút "Nhập kết quả" hiện khi lịch hoàn thành và hồ sơ đang "Đã phỏng vấn".
+
+    GHI CHÚ: các tham số GET view đọc thêm: tuKhoa, sapXep, tuNgay, denNgay, trangThai, hinhThuc, trang, chon.
+    ViewBag tùy chọn (không có vẫn chạy): Trang, TongTrang, TongBanGhi, PageSize, TongLich, Chon.
+    Tên thuộc tính đoán theo model, cần đối chiếu: item.MaHoSo, item.GhiChu, item.HoSoXetTuyen.Khoa.
 *@
 @model IEnumerable<LichPhongVan>
 
 @{
-    ViewData["Title"] = "Lịch phỏng vấn";
-    string? trangThaiDangLoc = ViewBag.TrangThai as string;
-}
+    ViewData["Title"] = "Quản lý lịch phỏng vấn";
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Lịch phỏng vấn</h2>
-    <a asp-action="Create" class="btn btn-primary">+ Lập lịch phỏng vấn</a>
-</div>
+    var ds = Model.ToList();
+    var q = Context.Request.Query;
 
-@if (TempData["ThongBao"] != null)
-{
-    <div class="alert alert-success">@TempData["ThongBao"]</div>
-}
-@if (TempData["Loi"] != null)
-{
-    <div class="alert alert-danger">@TempData["Loi"]</div>
-}
+    string? trangThaiDangLoc = (ViewBag.TrangThai as string) ?? q["trangThai"].ToString();
+    string hinhThucDangLoc = q["hinhThuc"].ToString();
+    string tuKhoa = q["tuKhoa"].ToString();
+    string sapXep = string.IsNullOrEmpty(q["sapXep"]) ? "batdau_asc" : q["sapXep"].ToString();
+    string tuNgay = q["tuNgay"].ToString();
+    string denNgay = q["denNgay"].ToString();
 
-<form asp-action="Index" method="get" class="row g-2 mb-3">
-    <div class="col-auto">
-        <select name="trangThai" class="form-select">
-            <option value="">-- Tất cả trạng thái --</option>
-            @foreach (var tt in new[] { TrangThaiLich.DaLenLich, TrangThaiLich.DaHoanThanh, TrangThaiLich.DaHuy })
-            {
-                <option value="@tt" selected="@(tt == trangThaiDangLoc)">@tt</option>
-            }
-        </select>
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-secondary">Lọc</button>
-    </div>
-</form>
+    int trang = (ViewBag.Trang as int?) ?? 1;
+    int tongTrang = (ViewBag.TongTrang as int?) ?? 1;
+    int tongBanGhi = (ViewBag.TongBanGhi as int?) ?? ds.Count;
+    int pageSize = (ViewBag.PageSize as int?) ?? Math.Max(ds.Count, 1);
+    int tongLich = (ViewBag.TongLich as int?) ?? tongBanGhi;
+    int batDau = ds.Count == 0 ? 0 : (trang - 1) * pageSize + 1;
+    int ketThuc = ds.Count == 0 ? 0 : batDau + ds.Count - 1;
 
-<table class="table table-striped align-middle">
-    <thead>
-        <tr>
-            <th>Thí sinh</th>
-            <th>Ngành</th>
-            <th>Bắt đầu</th>
-            <th>Kết thúc</th>
-            <th>Hình thức</th>
-            <th>Địa điểm / Liên kết</th>
-            <th>Người phỏng vấn</th>
-            <th>Trạng thái</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
+    bool coLoc = !string.IsNullOrEmpty(tuNgay) || !string.IsNullOrEmpty(denNgay)
+              || !string.IsNullOrEmpty(trangThaiDangLoc) || !string.IsNullOrEmpty(hinhThucDangLoc);
+
+    string chonId = (ViewBag.Chon?.ToString()) ?? q["chon"].ToString();
+    var chon = ds.FirstOrDefault(x => x.MaLichPhongVan.ToString() == chonId) ?? ds.FirstOrDefault();
+
+    var lichSu = chon == null
+        ? new List<LichPhongVan>()
+        : ds.Where(x => x.HoSoXetTuyen?.ThiSinh?.HoTen == chon.HoSoXetTuyen?.ThiSinh?.HoTen
+                     && x.MaLichPhongVan != chon.MaLichPhongVan)
+            .OrderByDescending(x => x.ThoiGianBatDau).ToList();
+
+    // Tạo URL giữ nguyên điều kiện tìm kiếm / lọc / sắp xếp hiện tại
+    string UrlGiu(int? trangMoi = null, object? chonMoi = null, string? boQua = null)
     {
-        var badge = item.TrangThai == TrangThaiLich.DaLenLich   ? "bg-primary"
-                  : item.TrangThai == TrangThaiLich.DaHoanThanh ? "bg-success"
-                  : "bg-secondary";
-        <tr>
-            <td>@item.HoSoXetTuyen?.ThiSinh?.HoTen</td>
-            <td>@item.HoSoXetTuyen?.NganhTuyenSinh?.TenNganh</td>
-            <td>@item.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</td>
-            <td>@item.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</td>
-            <td>@item.HinhThucPhongVan</td>
-            <td>@item.DiaDiemHoacLienKet</td>
-            <td>@item.NguoiPhongVan?.HoTen</td>
-            <td><span class="badge @badge">@item.TrangThai</span></td>
-            <td class="text-nowrap">
-                @* Nút Chi tiết luôn hiển thị *@
-                <a asp-action="Details" asp-route-id="@item.MaLichPhongVan"
-                   class="btn btn-sm btn-outline-info">Chi tiết</a>
-
-                @* Chỉ lịch "Đã lên lịch" mới có nút Hoàn thành / Hủy (đề mục 14) *@
-                @if (item.TrangThai == TrangThaiLich.DaLenLich)
-                {
-                    <form asp-action="HoanThanh" asp-route-id="@item.MaLichPhongVan" method="post" class="d-inline"
-                          onsubmit="return confirm('Xác nhận đã phỏng vấn xong?');">
-                        <button type="submit" class="btn btn-sm btn-success">Hoàn thành</button>
-                    </form>
-                    <form asp-action="Huy" asp-route-id="@item.MaLichPhongVan" method="post" class="d-inline"
-                          onsubmit="return confirm('Bạn có chắc muốn hủy lịch này?');">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Hủy</button>
-                    </form>
-                }
-
-                @* Lịch hoàn thành + hồ sơ "Đã phỏng vấn" → cho phép nhập kết quả *@
-                @if (item.TrangThai == TrangThaiLich.DaHoanThanh &&
-                     item.HoSoXetTuyen?.TrangThai == TrangThaiHoSo.DaPhongVan)
-                {
-                    <a asp-action="NhapKetQua" asp-route-id="@item.MaLichPhongVan"
-                       class="btn btn-sm btn-warning">Nhập kết quả</a>
-                }
-            </td>
-        </tr>
+        var p = new Dictionary<string, string?>();
+        foreach (var k in new[] { "tuKhoa", "sapXep", "tuNgay", "denNgay", "trangThai", "hinhThuc" })
+        {
+            if (k == boQua) continue;
+            var v = q[k].ToString();
+            if (!string.IsNullOrEmpty(v)) p[k] = v;
+        }
+        if (trangMoi.HasValue) p["trang"] = trangMoi.Value.ToString();
+        else if (!string.IsNullOrEmpty(q["trang"])) p["trang"] = q["trang"].ToString();
+        if (chonMoi != null) p["chon"] = chonMoi.ToString();
+        var qs = string.Join("&", p.Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value ?? "")}"));
+        return Url.Action("Index") + (qs.Length > 0 ? "?" + qs : "");
     }
-    </tbody>
-</table>
 
-@if (!Model.Any())
-{
-    <p class="text-muted">Chưa có lịch phỏng vấn nào.</p>
+    string BadgeClass(string? tt) =>
+        tt == TrangThaiLich.DaLenLich ? "pv-badge pv-badge-primary"
+      : tt == TrangThaiLich.DaHoanThanh ? "pv-badge pv-badge-success"
+      : "pv-badge pv-badge-danger";
 }
+
+<style>
+    .pv {
+        --pv-bg: #f3f6fa;
+        --pv-card: #fff;
+        --pv-line: #dee5ee;
+        --pv-ink: #182b46;
+        --pv-muted: #63738a;
+        --pv-primary: #2057a5;
+        --pv-primary-soft: #eaf1fc;
+        --pv-danger: #b43d43;
+        --pv-danger-soft: #fceeef;
+        --pv-success: #1f7a4d;
+        --pv-success-soft: #e7f5ee;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--pv-ink);
+    }
+
+    .pv * {
+        box-sizing: border-box;
+    }
+
+    .pv-crumb {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--pv-primary);
+        margin-bottom: 12px;
+    }
+
+    .pv-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .pv-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        line-height: 1.2;
+    }
+
+    .pv-sub {
+        font-size: 14px;
+        color: var(--pv-muted);
+        margin: 0;
+    }
+
+    .pv-card {
+        background: var(--pv-card);
+        border: 1px solid var(--pv-line);
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .pv-card h2 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 16px;
+    }
+
+    .pv-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid var(--pv-line);
+        background: #fff;
+        color: var(--pv-ink);
+        text-decoration: none;
+        cursor: pointer;
+        line-height: 1.3;
+    }
+
+    .pv-btn:hover {
+        background: var(--pv-bg);
+        color: var(--pv-ink);
+    }
+
+    .pv-btn-primary {
+        background: var(--pv-primary);
+        border-color: var(--pv-primary);
+        color: #fff;
+    }
+
+    .pv-btn-primary:hover {
+        background: #1a4786;
+        color: #fff;
+    }
+
+    .pv-btn-danger {
+        background: var(--pv-danger);
+        border-color: var(--pv-danger);
+        color: #fff;
+    }
+
+    .pv-btn-danger:hover {
+        background: #9a3338;
+        color: #fff;
+    }
+
+    .pv-btn-warning {
+        background: #f5b942;
+        border-color: #f5b942;
+        color: #3d2b00;
+    }
+
+    .pv-btn[disabled],
+    .pv-btn.disabled {
+        background: var(--pv-bg);
+        color: var(--pv-muted);
+        border-color: var(--pv-line);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .pv-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .pv-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .pv-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .pv-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .pv-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        border: 1px solid var(--pv-line);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--pv-ink);
+    }
+
+    .pv-input:focus {
+        outline: 2px solid var(--pv-primary-soft);
+        border-color: var(--pv-primary);
+    }
+
+    .pv-toggle {
+        background: none;
+        border: 0;
+        padding: 0;
+        margin: 16px 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--pv-ink);
+        cursor: pointer;
+    }
+
+    .pv-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .pv-hint {
+        font-size: 12px;
+        color: var(--pv-muted);
+        margin: 12px 0 0;
+    }
+
+    .pv-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        background: var(--pv-primary-soft);
+        color: var(--pv-primary);
+        text-decoration: none;
+    }
+
+    .pv-table-wrap {
+        border: 1px solid var(--pv-line);
+        border-radius: 6px;
+        overflow-x: auto;
+    }
+
+    .pv-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .pv-table th {
+        background: var(--pv-bg);
+        color: var(--pv-muted);
+        font-weight: 600;
+        font-size: 12px;
+        text-align: left;
+        padding: 13px 14px;
+        white-space: nowrap;
+    }
+
+    .pv-table td {
+        padding: 15px 14px;
+        border-top: 1px solid var(--pv-line);
+        vertical-align: middle;
+    }
+
+    .pv-table tr.pv-row {
+        cursor: pointer;
+    }
+
+    .pv-table tr.pv-row:hover td {
+        background: #f8fafd;
+    }
+
+    .pv-table tr.pv-row.active td {
+        background: var(--pv-primary-soft);
+    }
+
+    .pv-table .pv-id {
+        font-weight: 600;
+    }
+
+    .pv-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 6px;
+        white-space: nowrap;
+    }
+
+    .pv-badge-primary {
+        background: var(--pv-primary-soft);
+        color: var(--pv-primary);
+    }
+
+    .pv-badge-success {
+        background: var(--pv-success-soft);
+        color: var(--pv-success);
+    }
+
+    .pv-badge-danger {
+        background: var(--pv-danger-soft);
+        color: var(--pv-danger);
+    }
+
+    .pv-empty {
+        text-align: center;
+        padding: 32px;
+        color: var(--pv-muted);
+    }
+
+    .pv-paging {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pv-paging .pv-muted {
+        font-size: 12px;
+        color: var(--pv-muted);
+    }
+
+    .pv-paging-ctl {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .pv-dl {
+        display: grid;
+        grid-template-columns: 170px 1fr;
+        gap: 12px 20px;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .pv-dl dt {
+        color: var(--pv-muted);
+        font-weight: 400;
+    }
+
+    .pv-dl dd {
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .pv-note {
+        background: var(--pv-primary-soft);
+        border-radius: 6px;
+        padding: 16px;
+        margin: 16px 0;
+    }
+
+    .pv-note strong {
+        display: block;
+        font-size: 13px;
+        color: var(--pv-primary);
+        margin-bottom: 6px;
+    }
+
+    .pv-note span {
+        font-size: 14px;
+    }
+
+    .pv-foot {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--pv-line);
+        padding-top: 16px;
+        font-size: 11px;
+        color: var(--pv-muted);
+    }
+
+    .pv-modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 43, 70, .45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1055;
+        padding: 16px;
+    }
+
+    .pv-modal-bg.open {
+        display: flex;
+    }
+
+    .pv-modal {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid var(--pv-line);
+        padding: 20px;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .pv-modal h3 {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 14px;
+    }
+
+    .pv-modal p {
+        font-size: 14px;
+        margin: 0 0 14px;
+    }
+
+    @@media (max-width: 992px) {
+
+        .pv-grid-2,
+        .pv-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .pv-head {
+            flex-direction: column;
+        }
+
+        .pv-dl {
+            grid-template-columns: 130px 1fr;
+        }
+    }
+</style>
+
+<div class="pv">
+    <div class="pv-crumb">23 / Cán bộ tuyển sinh / Lịch phỏng vấn</div>
+
+    <div class="pv-head">
+        <div>
+            <h1 class="pv-title">Quản lý lịch phỏng vấn</h1>
+            <p class="pv-sub">
+                @tongLich lịch ·
+                @ds.Count(x => x.TrangThai == TrangThaiLich.DaHoanThanh) đã hoàn thành,
+                @ds.Count(x => x.TrangThai == TrangThaiLich.DaLenLich) sắp tới,
+                @ds.Count(x => x.TrangThai == TrangThaiLich.DaHuy) đã hủy.
+                Xem lịch sử và thao tác theo trạng thái.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Dashboard" class="pv-btn">Tổng quan</a>
+            <a asp-action="Create" class="pv-btn pv-btn-primary">+ Lập lịch phỏng vấn</a>
+        </div>
+    </div>
+
+    @if (TempData["ThongBao"] != null)
+    {
+        <div class="alert alert-success shadow-sm">@TempData["ThongBao"]</div>
+    }
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger shadow-sm">@TempData["Loi"]</div>
+    }
+
+    @* ===== Tìm kiếm & bộ lọc ===== *@
+    <form asp-action="Index" method="get" class="pv-card">
+        <h2>Tìm kiếm &amp; bộ lọc</h2>
+        <div class="pv-grid pv-grid-2">
+            <div class="pv-field">
+                <label for="tuKhoa">Tìm kiếm</label>
+                <input id="tuKhoa" name="tuKhoa" value="@tuKhoa" class="pv-input"
+                       placeholder="Mã hồ sơ, thí sinh hoặc người phỏng vấn…" />
+            </div>
+            <div class="pv-field">
+                <label for="sapXep">Sắp xếp</label>
+                <select id="sapXep" name="sapXep" class="pv-input">
+                    <option value="batdau_asc" selected="@(sapXep == "batdau_asc")">Thời gian bắt đầu tăng dần</option>
+                    <option value="batdau_desc" selected="@(sapXep == "batdau_desc")">Thời gian bắt đầu giảm dần
+                    </option>
+                    <option value="thisinh_asc" selected="@(sapXep == "thisinh_asc")">Tên thí sinh A → Z</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" class="pv-toggle" id="pvToggleFilter" aria-expanded="@(coLoc ? "true" : "false")">
+            Bộ lọc nâng cao <span id="pvToggleIcon">@(coLoc ? "▴" : "▾")</span>
+        </button>
+
+        <div id="pvAdvanced" style="display:@(coLoc ? "block" : "none")">
+            <div class="pv-grid pv-grid-3">
+                <div class="pv-field">
+                    <label>Thời gian</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="date" name="tuNgay" value="@tuNgay" class="pv-input" aria-label="Từ ngày" />
+                        <span>–</span>
+                        <input type="date" name="denNgay" value="@denNgay" class="pv-input" aria-label="Đến ngày" />
+                    </div>
+                </div>
+                <div class="pv-field">
+                    <label for="trangThai">Trạng thái lịch</label>
+                    <select id="trangThai" name="trangThai" class="pv-input">
+                        <option value="">Tất cả</option>
+                        @foreach (var tt in new[] { TrangThaiLich.DaLenLich, TrangThaiLich.DaHoanThanh,
+                        TrangThaiLich.DaHuy })
+                        {
+                            <option value="@tt" selected="@(tt.ToString() == trangThaiDangLoc)">@tt</option>
+                        }
+                    </select>
+                </div>
+                <div class="pv-field">
+                    <label for="hinhThuc">Hình thức</label>
+                    <select id="hinhThuc" name="hinhThuc" class="pv-input">
+                        <option value="">Tất cả · Trực tiếp / Trực tuyến</option>
+                        <option value="Trực tiếp" selected="@(hinhThucDangLoc == "Trực tiếp")">Trực tiếp</option>
+                        <option value="Trực tuyến" selected="@(hinhThucDangLoc == "Trực tuyến")">Trực tuyến</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="pv-actions">
+            <button type="submit" class="pv-btn pv-btn-primary">Áp dụng</button>
+            <a asp-action="Index" class="pv-btn">Xóa bộ lọc</a>
+            @if (!string.IsNullOrEmpty(tuNgay) && DateTime.TryParse(tuNgay, out var dtTu))
+            {
+                <a class="pv-chip" href="@UrlGiu(1, null, "tuNgay")">Từ @dtTu.ToString("dd/MM/yyyy") ×</a>
+            }
+            @if (!string.IsNullOrEmpty(denNgay) && DateTime.TryParse(denNgay, out var dtDen))
+            {
+                <a class="pv-chip" href="@UrlGiu(1, null, "denNgay")">Đến @dtDen.ToString("dd/MM/yyyy") ×</a>
+            }
+            @if (!string.IsNullOrEmpty(trangThaiDangLoc))
+            {
+                <a class="pv-chip" href="@UrlGiu(1, null, "trangThai")">@trangThaiDangLoc ×</a>
+            }
+            @if (!string.IsNullOrEmpty(hinhThucDangLoc))
+            {
+                <a class="pv-chip" href="@UrlGiu(1, null, "hinhThuc")">@hinhThucDangLoc ×</a>
+            }
+        </div>
+        <p class="pv-hint">Điều kiện tìm kiếm, lọc và sắp xếp được giữ khi chuyển trang.</p>
+    </form>
+
+    @* ===== Danh sách lịch ===== *@
+    <div class="pv-card">
+        <h2>Danh sách lịch · @DateTime.Now.Year</h2>
+        <div class="pv-table-wrap">
+            <table class="pv-table">
+                <thead>
+                    <tr>
+                        <th>Mã lịch / Hồ sơ</th>
+                        <th>Thí sinh</th>
+                        <th>Thời gian</th>
+                        <th>Người phỏng vấn</th>
+                        <th>Hình thức / Nơi</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ds)
+                    {
+                        var dangChon = chon != null && item.MaLichPhongVan == chon.MaLichPhongVan;
+                        <tr class="pv-row @(dangChon ? "active" : "")" data-href="@UrlGiu(null, item.MaLichPhongVan)">
+                            <td class="pv-id">@item.MaLichPhongVan · @item.MaHoSo</td>
+                            <td>@item.HoSoXetTuyen?.ThiSinh?.HoTen</td>
+                            <td>@item.ThoiGianBatDau.ToString("dd/MM") ·
+                                @item.ThoiGianBatDau.ToString("HH:mm")–@item.ThoiGianKetThuc.ToString("HH:mm")</td>
+                                <td>@item.NguoiPhongVan?.HoTen</td>
+                                <td>@item.HinhThucPhongVan@(string.IsNullOrWhiteSpace(item.DiaDiemHoacLienKet) ? "" : " · " +
+                                                                item.DiaDiemHoacLienKet)</td>
+                                    <td><span class="@BadgeClass(item.TrangThai)">@item.TrangThai</span></td>
+                                    <td class="text-end">
+                                        <a asp-action="Details" asp-route-id="@item.MaLichPhongVan" class="pv-btn"
+                                           style="padding:6px 10px">Chi tiết</a>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!ds.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="pv-empty">Chưa có lịch phỏng vấn nào phù hợp.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pv-paging">
+                    <span class="pv-muted">@batDau–@ketThuc / @tongBanGhi bản ghi · @pageSize / trang</span>
+                    <div class="pv-paging-ctl">
+                        <a class="pv-btn @(trang <= 1 ? "disabled" : "")" href="@UrlGiu(Math.Max(trang - 1, 1))">‹ Trước</a>
+                        <span class="pv-chip">Trang @trang / @tongTrang</span>
+                        <a class="pv-btn @(trang >= tongTrang ? "disabled" : "")"
+                           href="@UrlGiu(Math.Min(trang + 1, tongTrang))">Sau ›</a>
+                    </div>
+                </div>
+                <p class="pv-hint">Hiển thị @ds.Count / @tongBanGhi lịch, gồm lịch đã hủy. Toàn đợt có @tongLich lịch.</p>
+            </div>
+
+            @* ===== Chi tiết đang chọn ===== *@
+            @if (chon != null)
+            {
+                var daLenLich = chon.TrangThai == TrangThaiLich.DaLenLich;
+                var daHuy = chon.TrangThai == TrangThaiLich.DaHuy;
+                var choNhap = chon.TrangThai == TrangThaiLich.DaHoanThanh
+                                && chon.HoSoXetTuyen?.TrangThai == TrangThaiHoSo.DaPhongVan;
+                var moTa = $"{chon.MaLichPhongVan} · {chon.MaHoSo}, {chon.ThoiGianBatDau:dd/MM/yyyy HH:mm}–{chon.ThoiGianKetThuc:HH:mm}";
+
+                <div class="pv-card">
+                    <h2>Chi tiết đang chọn · @chon.MaLichPhongVan</h2>
+                    <div class="pv-grid pv-grid-2">
+                        <dl class="pv-dl">
+                            <dt>Mã lịch</dt>
+                            <dd>@chon.MaLichPhongVan</dd>
+                            <dt>Hồ sơ / Thí sinh</dt>
+                            <dd>@chon.MaHoSo · @chon.HoSoXetTuyen?.ThiSinh?.HoTen</dd>
+                            <dt>Ngành</dt>
+                            <dd>@chon.HoSoXetTuyen?.NganhTuyenSinh?.TenNganh</dd>
+                            <dt>Bắt đầu</dt>
+                            <dd>@chon.ThoiGianBatDau.ToString("dd/MM/yyyy · HH:mm")</dd>
+                            <dt>Kết thúc</dt>
+                            <dd>@chon.ThoiGianKetThuc.ToString("dd/MM/yyyy · HH:mm")</dd>
+                        </dl>
+                        <dl class="pv-dl">
+                            <dt>Hình thức</dt>
+                            <dd>@chon.HinhThucPhongVan</dd>
+                            <dt>Địa điểm</dt>
+                            <dd>@chon.DiaDiemHoacLienKet</dd>
+                            <dt>Người phỏng vấn</dt>
+                            <dd>@chon.NguoiPhongVan?.HoTen</dd>
+                            <dt>Ghi chú</dt>
+                            <dd>@(string.IsNullOrWhiteSpace(chon.GhiChu) ? "—" : chon.GhiChu)</dd>
+                            <dt>Trạng thái lịch</dt>
+                            <dd><span class="@BadgeClass(chon.TrangThai)">@chon.TrangThai</span></dd>
+                        </dl>
+                    </div>
+                    <dl class="pv-dl" style="margin-top:12px">
+                        <dt>Trạng thái hồ sơ</dt>
+                        <dd>@chon.HoSoXetTuyen?.TrangThai</dd>
+                        <dt>Khoa</dt>
+                        <dd>@chon.HoSoXetTuyen?.NganhTuyenSinh?.Khoa?.TenKhoa</dd>
+                    </dl>
+
+                    <div class="pv-note">
+                        <strong>Lịch hiệu lực của @chon.MaHoSo</strong>
+                        <span>Chỉ một lịch hiệu lực cho mỗi hồ sơ. Lịch đã hủy được giữ trong lịch sử, không còn tham gia kiểm tra
+                            trùng lịch.</span>
+                        </div>
+
+                        <div class="pv-actions" style="margin-top:0">
+                            @if (daLenLich)
+                            {
+                                <a asp-action="Details" asp-route-id="@chon.MaLichPhongVan" class="pv-btn pv-btn-primary">Chi tiết lịch</a>
+                                <button type="button" class="pv-btn pv-btn-danger" data-pv-modal="huy" data-id="@chon.MaLichPhongVan"
+                                        data-mota="@moTa">Hủy lịch</button>
+                                <button type="button" class="pv-btn" data-pv-modal="hoanthanh" data-id="@chon.MaLichPhongVan"
+                                        data-mota="@moTa">Hoàn thành phỏng vấn</button>
+                            }
+                            else
+                            {
+                                <a asp-action="Details" asp-route-id="@chon.MaLichPhongVan" class="pv-btn">Chi tiết lịch</a>
+                                <span class="pv-btn disabled">Hủy lịch</span>
+                                <span class="pv-btn disabled">Hoàn thành phỏng vấn</span>
+                            }
+                            @if (choNhap)
+                            {
+                                <a asp-action="NhapKetQua" asp-route-id="@chon.MaLichPhongVan" class="pv-btn pv-btn-warning">Nhập kết
+                                    quả</a>
+                                }
+                                <a asp-controller="HoSoXetTuyen" asp-action="Details" asp-route-id="@chon.MaHoSo" class="pv-btn">Xem hồ sơ
+                                    @chon.MaHoSo</a>
+                                </div>
+                                @if (daHuy)
+                                {
+                                    <p class="pv-hint">Lịch đã hủy · Chỉ xem. Lịch cũ vẫn được lưu, không được hoàn thành hoặc sửa thành lịch mới.
+                                    </p>
+                                }
+                            </div>
+
+                            @* ===== Lịch sử của hồ sơ ===== *@
+                            <div class="pv-card">
+                                <h2>Lịch sử của hồ sơ @chon.MaHoSo</h2>
+                                <div class="pv-table-wrap">
+                                    <table class="pv-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Mã lịch</th>
+                                                <th>Thời gian</th>
+                                                <th>Người phỏng vấn</th>
+                                                <th>Hình thức / Nơi</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var h in lichSu)
+                                            {
+                                                <tr>
+                                                    <td class="pv-id">@h.MaLichPhongVan</td>
+                                                    <td>@h.ThoiGianBatDau.ToString("dd/MM/yyyy · HH:mm")–@h.ThoiGianKetThuc.ToString("HH:mm")</td>
+                                                    <td>@h.NguoiPhongVan?.HoTen</td>
+                                                    <td>@h.HinhThucPhongVan@(string.IsNullOrWhiteSpace(h.DiaDiemHoacLienKet) ? "" : " · " +
+                                                                                    h.DiaDiemHoacLienKet)</td>
+                                                        <td><span class="@BadgeClass(h.TrangThai)">@h.TrangThai</span></td>
+                                                    </tr>
+                                                }
+                                                @if (!lichSu.Any())
+                                                {
+                                                    <tr>
+                                                        <td colspan="5" class="pv-empty">Hồ sơ này chưa có lịch nào khác.</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="pv-hint">Không xóa lịch cũ; khi hủy, bản ghi không còn tham gia kiểm tra trùng lịch.</p>
+                                </div>
+                            }
+
+                            <div class="pv-foot">
+                                <span>Đề tài 21 · Nhóm 5 · ASP.NET Core MVC</span>
+                            </div>
+                        </div>
+
+                        @* ===== Hộp xác nhận Hủy / Hoàn thành ===== *@
+                        <div class="pv-modal-bg" id="pvModalBg" role="dialog" aria-modal="true">
+                            <form method="post" id="pvModalForm" class="pv-modal">
+                                @Html.AntiForgeryToken()
+                                <h3 id="pvModalTitle"></h3>
+                                <p id="pvModalBody"></p>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="pv-btn" id="pvModalCancel">Quay lại</button>
+                                    <button type="submit" class="pv-btn" id="pvModalOk"></button>
+                                </div>
+                            </form>
+                        </div>
+
+                        @section Scripts {
+                            <script>
+                                (function () {
+                                    // Mở/đóng bộ lọc nâng cao
+                                    const tg = document.getElementById('pvToggleFilter'), adv = document.getElementById('pvAdvanced'), ic = document.getElementById('pvToggleIcon');
+                                    tg.addEventListener('click', function () {
+                                        const open = adv.style.display === 'none';
+                                        adv.style.display = open ? 'block' : 'none';
+                                        ic.textContent = open ? '▴' : '▾';
+                                        tg.setAttribute('aria-expanded', open);
+                                    });
+
+                                    // Bấm dòng để chọn lịch (trừ khi bấm vào nút/liên kết)
+                                    document.querySelectorAll('tr.pv-row').forEach(function (tr) {
+                                        tr.addEventListener('click', function (e) {
+                                            if (e.target.closest('a,button,form')) return;
+                                            window.location = tr.dataset.href;
+                                        });
+                                    });
+
+                                    // Hộp xác nhận
+                                    const bg = document.getElementById('pvModalBg'), form = document.getElementById('pvModalForm'),
+                                        title = document.getElementById('pvModalTitle'), body = document.getElementById('pvModalBody'),
+                                        ok = document.getElementById('pvModalOk');
+                                    const cfg = {
+                                        huy: {
+                                            title: 'Xác nhận hủy lịch', action: '@Url.Action("Huy")', okText: 'Hủy lịch', okClass: 'pv-btn pv-btn-danger',
+                                            body: function (m) { return 'Hủy ' + m + '? Giữ bản ghi lịch sử; lịch hủy không còn hiệu lực. Không tự coi hồ sơ là Đã hủy.'; }
+                                        },
+                                        hoanthanh: {
+                                            title: 'Xác nhận hoàn thành', action: '@Url.Action("HoanThanh")', okText: 'Hoàn thành', okClass: 'pv-btn pv-btn-primary',
+                                            body: function (m) { return m + ' đã diễn ra? Khi xác nhận, lịch chuyển Đã hoàn thành và hồ sơ chuyển Đã phỏng vấn.'; }
+                                        }
+                                    };
+                                    document.querySelectorAll('[data-pv-modal]').forEach(function (btn) {
+                                        btn.addEventListener('click', function () {
+                                            const c = cfg[btn.dataset.pvModal];
+                                            title.textContent = c.title;
+                                            body.textContent = c.body(btn.dataset.mota);
+                                            ok.textContent = c.okText; ok.className = c.okClass;
+                                            form.action = c.action + '/' + encodeURIComponent(btn.dataset.id);
+                                            bg.classList.add('open');
+                                        });
+                                    });
+                                    function dong() { bg.classList.remove('open'); }
+                                    document.getElementById('pvModalCancel').addEventListener('click', dong);
+                                    bg.addEventListener('click', function (e) { if (e.target === bg) dong(); });
+                                    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') dong(); });
+                                })();
+                            </script>
+                        }

@@ -2,321 +2,632 @@
 //Họ và tên: Nguyễn Đức Nghĩa
 //Mã sinh viên: 23103100307
 //Nội dung thực hiện: Giao diện danh sách hồ sơ xét tuyển, tìm kiếm, lọc, sắp xếp và phân trang LINQ (Task M4.1).
+//Dàn lại theo thiết kế Figma "21 · Xử lý hồ sơ xét tuyển": thao tác theo từng trạng thái,
+//bộ lọc nâng cao thu gọn được, chip điều kiện lọc, phân trang giữ điều kiện.
+//
+//GHI CHÚ: các action đoán tên, cần đối chiếu với controller:
+//  Lập lịch  -> LichPhongVan/Create (route maHoSo)
+//  Xem lịch  -> LichPhongVan/Index  (route tuKhoa = mã hồ sơ)
+//  Ghi kết quả -> HoSoXetTuyen/KetQua (route id)
 *@
 @model QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.ViewModels.HoSoXetTuyenIndexViewModel
 @using QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models
 
 @{
-    ViewData["Title"] = "Danh sách hồ sơ xét tuyển";
+    ViewData["Title"] = "Xử lý hồ sơ xét tuyển";
+
+    var items = Model.Items.ToList();
+    int tongTrang = Math.Max(1, Model.TotalPages);
+    int batDau = items.Count == 0 ? 0 : (Model.PageNumber - 1) * Model.PageSize + 1;
+    int ketThuc = items.Count == 0 ? 0 : batDau + items.Count - 1;
+
+    string tuNgay = Model.NgayNopTu?.ToString("yyyy-MM-dd") ?? "";
+    string denNgay = Model.NgayNopDen?.ToString("yyyy-MM-dd") ?? "";
+    bool coLocNangCao = !string.IsNullOrEmpty(Model.MaKhoa?.ToString())
+                     || !string.IsNullOrEmpty(Model.TrangThai?.ToString())
+                     || Model.NgayNopTu.HasValue || Model.NgayNopDen.HasValue;
+    bool coLoc = coLocNangCao || !string.IsNullOrWhiteSpace(Model.SearchKeyword);
+
+    // Liên kết phân trang, luôn giữ nguyên điều kiện tìm kiếm / lọc / sắp xếp
+    string Trang(int p) => Url.Action("Index", new
+    {
+        pageNumber = p,
+        pageSize = Model.PageSize,
+        searchKeyword = Model.SearchKeyword,
+        maKhoa = Model.MaKhoa,
+        trangThai = Model.TrangThai,
+        ngayNopTu = tuNgay == "" ? null : tuNgay,
+        ngayNopDen = denNgay == "" ? null : denNgay,
+        sortOrder = Model.SortOrder
+    })!;
+
+    // Bỏ một điều kiện lọc khi bấm vào chip ×
+    string BoLoc(string ten) => Url.Action("Index", new
+    {
+        pageSize = Model.PageSize,
+        searchKeyword = ten == "searchKeyword" ? null : Model.SearchKeyword,
+        maKhoa = ten == "maKhoa" ? null : Model.MaKhoa?.ToString(),
+        trangThai = ten == "trangThai" ? null : Model.TrangThai?.ToString(),
+        ngayNopTu = ten == "ngayNop" || tuNgay == "" ? null : tuNgay,
+        ngayNopDen = ten == "ngayNop" || denNgay == "" ? null : denNgay,
+        sortOrder = Model.SortOrder
+    })!;
+
+    string BadgeClass(string? tt) => tt switch
+    {
+        TrangThaiHoSo.ChoDuyet => "hs-badge hs-amber",
+        TrangThaiHoSo.TrungTuyen => "hs-badge hs-green",
+        TrangThaiHoSo.KhongDatSoTuyen => "hs-badge hs-red",
+        TrangThaiHoSo.KhongTrungTuyen => "hs-badge hs-red",
+        TrangThaiHoSo.DaHuy => "hs-badge hs-grey",
+        _ => "hs-badge hs-blue"   // Đạt sơ tuyển, Chờ phỏng vấn, Đã phỏng vấn
+    };
 }
 
-<div class="container-fluid py-3">
-    <!-- Tiêu đề và thống kê -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h3 class="fw-bold text-primary mb-1">
-                📋 Quản lý hồ sơ xét tuyển
-            </h3>
-            <p class="text-muted small mb-0">Module 4 - Tiếp nhận hồ sơ, sơ tuyển, theo dõi trạng thái và kiểm soát chỉ tiêu</p>
-        </div>
-    </div>
-
-    <!-- 4 Cards thống kê nhanh -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-primary bg-opacity-10 text-primary h-100">
-                <div class="card-body py-3 d-flex align-items-center">
-                    <div class="display-6 me-3">📁</div>
-                    <div>
-                        <div class="fs-4 fw-bold">@Model.TotalAll</div>
-                        <div class="small fw-semibold">Tổng số hồ sơ</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-warning bg-opacity-10 text-dark h-100">
-                <div class="card-body py-3 d-flex align-items-center">
-                    <div class="display-6 me-3">⏳</div>
-                    <div>
-                        <div class="fs-4 fw-bold text-warning">@Model.TotalChoDuyet</div>
-                        <div class="small fw-semibold">Hồ sơ chờ sơ tuyển</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-info bg-opacity-10 text-info h-100">
-                <div class="card-body py-3 d-flex align-items-center">
-                    <div class="display-6 me-3">✅</div>
-                    <div>
-                        <div class="fs-4 fw-bold">@Model.TotalDatSoTuyen</div>
-                        <div class="small fw-semibold">Đạt sơ tuyển</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-success bg-opacity-10 text-success h-100">
-                <div class="card-body py-3 d-flex align-items-center">
-                    <div class="display-6 me-3">🎓</div>
-                    <div>
-                        <div class="fs-4 fw-bold">@Model.TotalTrungTuyen</div>
-                        <div class="small fw-semibold">Đã trúng tuyển</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-            <strong>Thành công!</strong> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+<style>
+    .hs {
+        --ink: #182b46;
+        --muted: #63738a;
+        --line: #dee5ee;
+        --bg: #f3f6fa;
+        --primary: #2057a5;
+        --soft: #eaf1fc;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--ink);
     }
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-            <strong>Thông báo lỗi:</strong> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    .hs * {
+        box-sizing: border-box;
     }
 
-    <!-- Khu vực Bộ lọc, Tìm kiếm và Sắp xếp -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-light py-2">
-            <span class="fw-semibold text-secondary">🔍 Bộ lọc tìm kiếm & sắp xếp</span>
-        </div>
-        <div class="card-body">
-            <form method="get" asp-action="Index">
-                <div class="row g-2 mb-2">
-                    <div class="col-md-5">
-                        <label class="form-label small fw-semibold text-muted">Từ khóa tìm kiếm</label>
-                        <input type="text" name="SearchKeyword" value="@Model.SearchKeyword" class="form-control"
-                               placeholder="Nhập họ tên thí sinh hoặc tên ngành tuyển sinh..." />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-muted">Lọc theo Khoa</label>
-                        <select name="MaKhoa" asp-items="Model.KhoaList" class="form-select">
-                            <option value="">-- Tất cả các khoa --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-muted">Lọc theo Trạng thái hồ sơ</label>
-                        <select name="TrangThai" asp-items="Model.TrangThaiList" class="form-select">
-                            <option value="">-- Tất cả trạng thái --</option>
-                        </select>
-                    </div>
-                </div>
+    .hs-crumb {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
 
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-muted">Ngày nộp từ</label>
-                        <input type="date" name="NgayNopTu" value="@(Model.NgayNopTu?.ToString("yyyy-MM-dd"))" class="form-control" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-muted">Ngày nộp đến</label>
-                        <input type="date" name="NgayNopDen" value="@(Model.NgayNopDen?.ToString("yyyy-MM-dd"))" class="form-control" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-semibold text-muted">Sắp xếp theo</label>
-                        <select name="SortOrder" class="form-select">
-                            <option value="ngaynop_desc" selected="@(Model.SortOrder == "ngaynop_desc")">Ngày nộp mới nhất</option>
-                            <option value="ngaynop_asc" selected="@(Model.SortOrder == "ngaynop_asc")">Ngày nộp cũ nhất</option>
-                            <option value="hoten_asc" selected="@(Model.SortOrder == "hoten_asc")">Họ tên thí sinh (A - Z)</option>
-                            <option value="hoten_desc" selected="@(Model.SortOrder == "hoten_desc")">Họ tên thí sinh (Z - A)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-grow-1">
-                            Lọc dữ liệu
-                        </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            Đặt lại
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+    .hs h1 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        line-height: 1.2;
+    }
 
-    <!-- Bảng danh sách hồ sơ xét tuyển -->
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-dark">
-                Danh sách hồ sơ xét tuyển (@Model.TotalItems hồ sơ)
-            </h5>
-            <span class="badge bg-secondary">Trang @Model.PageNumber / @Math.Max(1, Model.TotalPages)</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-secondary">
-                    <tr>
-                        <th style="width: 70px;">Mã HS</th>
-                        <th>Họ tên thí sinh</th>
-                        <th>Ngành xét tuyển</th>
-                        <th>Khoa</th>
-                        <th class="text-center">Điểm THPT</th>
-                        <th class="text-center">Tổ hợp</th>
-                        <th>Ngày nộp</th>
-                        <th class="text-center">Trạng thái</th>
-                        <th class="text-center" style="width: 170px;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Items.Any())
-                    {
-                        foreach (var item in Model.Items)
-                        {
-                            <tr>
-                                <td class="fw-bold text-muted">#@item.MaHoSo</td>
-                                <td>
-                                    <div class="fw-bold text-dark">@item.HoTenThiSinh</div>
-                                    <small class="text-muted">
-                                        @item.GioiTinh | Sinh: @item.NgaySinh.ToString("dd/MM/yyyy")
-                                    </small>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">@item.TenNganh</div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">@item.TenKhoa</span>
-                                </td>
-                                <td class="text-center fw-bold">
-                                    @(item.DiemThiTHPT.HasValue ? item.DiemThiTHPT.Value.ToString("F2") : "—")
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary-subtle text-secondary border">@(string.IsNullOrWhiteSpace(item.ToHopThiSinh) ? "—" : item.ToHopThiSinh)</span>
-                                </td>
-                                <td>
-                                    <div>@item.NgayNop.ToString("dd/MM/yyyy")</div>
-                                    <small class="text-muted">@item.NgayNop.ToString("HH:mm")</small>
-                                </td>
-                                <td class="text-center">
-                                    @switch (item.TrangThai)
-                                    {
-                                        case TrangThaiHoSo.ChoDuyet:
-                                            <span class="badge bg-warning text-dark px-2 py-1">⏳ @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.DatSoTuyen:
-                                            <span class="badge bg-info text-dark px-2 py-1">✅ @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.KhongDatSoTuyen:
-                                            <span class="badge bg-danger px-2 py-1">❌ @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.ChoPhongVan:
-                                            <span class="badge bg-primary px-2 py-1">📅 @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.DaPhongVan:
-                                            <span class="badge bg-secondary px-2 py-1">🎤 @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.TrungTuyen:
-                                            <span class="badge bg-success px-2 py-1">🎉 @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.KhongTrungTuyen:
-                                            <span class="badge bg-dark px-2 py-1">🚫 @item.TrangThai</span>
-                                            break;
-                                        case TrangThaiHoSo.DaHuy:
-                                            <span class="badge bg-secondary px-2 py-1">🗑️ @item.TrangThai</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-light text-dark border">@item.TrangThai</span>
-                                            break;
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.MaHoSo" class="btn btn-outline-info" title="Xem chi tiết hồ sơ">
-                                            Chi tiết
-                                        </a>
-                                        @if (item.TrangThai == TrangThaiHoSo.ChoDuyet)
-                                        {
-                                            <a asp-action="SoTuyen" asp-route-id="@item.MaHoSo" class="btn btn-warning fw-semibold" title="Thực hiện sơ tuyển hồ sơ">
-                                                Sơ tuyển
-                                            </a>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
-                                <h5>Không tìm thấy hồ sơ xét tuyển nào phù hợp với điều kiện tìm kiếm.</h5>
-                                <p class="small mb-0">Vui lòng thay đổi từ khóa hoặc bộ lọc để thử lại.</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+    .hs-sub {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0 0 24px;
+    }
 
-        <!-- Phân trang Server-Side -->
-        @if (Model.TotalPages > 1)
+    .hs-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .hs-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .hs-card h2 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 16px;
+    }
+
+    .hs-kpi {
+        padding: 20px;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .hs-kpi .l {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .hs-kpi .v {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.2;
+    }
+
+    .hs-kpi .s {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .hs-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .hs-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hs-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .hs-input {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--ink);
+    }
+
+    .hs-input:focus {
+        outline: 2px solid var(--soft);
+        border-color: var(--primary);
+    }
+
+    .hs-toggle {
+        background: none;
+        border: 0;
+        padding: 0;
+        margin: 16px 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        cursor: pointer;
+    }
+
+    .hs-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .hs-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        text-decoration: none;
+        cursor: pointer;
+        line-height: 1.3;
+        white-space: nowrap;
+    }
+
+    .hs-btn:hover {
+        background: var(--bg);
+        color: var(--ink);
+    }
+
+    .hs-btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+    }
+
+    .hs-btn-primary:hover {
+        background: #1a4786;
+        color: #fff;
+    }
+
+    .hs-btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .hs-btn.disabled {
+        background: var(--bg);
+        color: var(--muted);
+        pointer-events: none;
+    }
+
+    .hs-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        background: var(--soft);
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .hs-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 12px 0 0;
+    }
+
+    .hs-wrap {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow-x: auto;
+    }
+
+    .hs-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .hs-table th {
+        background: var(--bg);
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 12px;
+        text-align: left;
+        padding: 13px 14px;
+        white-space: nowrap;
+    }
+
+    .hs-table td {
+        padding: 15px 14px;
+        border-top: 1px solid var(--line);
+        vertical-align: middle;
+    }
+
+    .hs-table tbody tr:hover td {
+        background: #f8fafd;
+    }
+
+    .hs-table .id {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .hs-table .sm {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .hs-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 6px;
+        white-space: nowrap;
+    }
+
+    .hs-blue {
+        background: var(--soft);
+        color: var(--primary);
+    }
+
+    .hs-amber {
+        background: #fff5e3;
+        color: #99611b;
+    }
+
+    .hs-green {
+        background: #eaf6ee;
+        color: #23734d;
+    }
+
+    .hs-red {
+        background: #fceeef;
+        color: #b43d43;
+    }
+
+    .hs-grey {
+        background: #eef1f5;
+        color: var(--muted);
+    }
+
+    .hs-empty {
+        text-align: center;
+        padding: 36px;
+        color: var(--muted);
+    }
+
+    .hs-paging {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .hs-paging .m {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .hs-ctl {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .hs-note {
+        background: var(--soft);
+        border-radius: 6px;
+        padding: 16px;
+    }
+
+    .hs-note b {
+        display: block;
+        font-size: 13px;
+        color: var(--primary);
+        margin-bottom: 6px;
+    }
+
+    .hs-note span {
+        font-size: 14px;
+    }
+
+    .hs-foot {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+        margin-top: 24px;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    @@media (max-width:992px) {
+
+        .hs-kpis,
+        .hs-grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="hs">
+    <div class="hs-crumb">21 / Cán bộ tuyển sinh / Xử lý hồ sơ</div>
+    <h1>Xử lý hồ sơ xét tuyển</h1>
+    <p class="hs-sub">@Model.TotalAll hồ sơ · Tra cứu theo thí sinh, ngành và từng giai đoạn. Chỉ sơ tuyển hồ sơ Chờ
+        duyệt.</p>
+
+        @if (TempData["SuccessMessage"] != null)
         {
-            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
-                <div class="text-muted small">
-                    Hiển thị trang <strong>@Model.PageNumber</strong> / <strong>@Model.TotalPages</strong>
-                    (Tổng cộng: <strong>@Model.TotalItems</strong> hồ sơ)
-                </div>
-                <nav aria-label="Phân trang hồ sơ">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                            <a class="page-link"
-                               asp-action="Index"
-                               asp-route-pageNumber="@(Model.PageNumber - 1)"
-                               asp-route-pageSize="@Model.PageSize"
-                               asp-route-searchKeyword="@Model.SearchKeyword"
-                               asp-route-maKhoa="@Model.MaKhoa"
-                               asp-route-trangThai="@Model.TrangThai"
-                               asp-route-ngayNopTu="@(Model.NgayNopTu?.ToString("yyyy-MM-dd"))"
-                               asp-route-ngayNopDen="@(Model.NgayNopDen?.ToString("yyyy-MM-dd"))"
-                               asp-route-sortOrder="@Model.SortOrder">
-                                &laquo; Trước
-                            </a>
-                        </li>
-
-                        @for (int i = 1; i <= Model.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link"
-                                   asp-action="Index"
-                                   asp-route-pageNumber="@i"
-                                   asp-route-pageSize="@Model.PageSize"
-                                   asp-route-searchKeyword="@Model.SearchKeyword"
-                                   asp-route-maKhoa="@Model.MaKhoa"
-                                   asp-route-trangThai="@Model.TrangThai"
-                                   asp-route-ngayNopTu="@(Model.NgayNopTu?.ToString("yyyy-MM-dd"))"
-                                   asp-route-ngayNopDen="@(Model.NgayNopDen?.ToString("yyyy-MM-dd"))"
-                                   asp-route-sortOrder="@Model.SortOrder">
-                                    @i
-                                </a>
-                            </li>
-                        }
-
-                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                            <a class="page-link"
-                               asp-action="Index"
-                               asp-route-pageNumber="@(Model.PageNumber + 1)"
-                               asp-route-pageSize="@Model.PageSize"
-                               asp-route-searchKeyword="@Model.SearchKeyword"
-                               asp-route-maKhoa="@Model.MaKhoa"
-                               asp-route-trangThai="@Model.TrangThai"
-                               asp-route-ngayNopTu="@(Model.NgayNopTu?.ToString("yyyy-MM-dd"))"
-                               asp-route-ngayNopDen="@(Model.NgayNopDen?.ToString("yyyy-MM-dd"))"
-                               asp-route-sortOrder="@Model.SortOrder">
-                                Sau &raquo;
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <strong>Thành công!</strong> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
             </div>
         }
-    </div>
-</div>
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <strong>Thông báo lỗi:</strong> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        }
 
+        @* ===== Chỉ số nhanh ===== *@
+        <div class="hs-kpis">
+            <div class="hs-card hs-kpi">
+                <span class="l">Tất cả hồ sơ</span>
+                <span class="v">@Model.TotalAll</span>
+            </div>
+            <div class="hs-card hs-kpi">
+                <span class="l">Chờ duyệt</span>
+                <span class="v">@Model.TotalChoDuyet</span>
+            </div>
+            <div class="hs-card hs-kpi">
+                <span class="l">Đạt sơ tuyển</span>
+                <span class="v">@Model.TotalDatSoTuyen</span>
+                <span class="s">Chưa có lịch hiệu lực</span>
+            </div>
+        </div>
+
+        @* ===== Tìm kiếm & bộ lọc ===== *@
+        <form method="get" asp-action="Index" class="hs-card">
+            <h2>Tìm kiếm &amp; bộ lọc</h2>
+            <div class="hs-grid hs-grid-2">
+                <div class="hs-field">
+                    <label for="SearchKeyword">Tìm kiếm</label>
+                    <input id="SearchKeyword" type="text" name="SearchKeyword" value="@Model.SearchKeyword" class="hs-input"
+                           placeholder="Tên thí sinh hoặc tên ngành…" />
+                </div>
+                <div class="hs-field">
+                    <label for="SortOrder">Sắp xếp</label>
+                    <select id="SortOrder" name="SortOrder" class="hs-input">
+                        <option value="ngaynop_desc" selected="@(Model.SortOrder == "ngaynop_desc")">Ngày nộp mới nhất
+                        </option>
+                        <option value="ngaynop_asc" selected="@(Model.SortOrder == "ngaynop_asc")">Ngày nộp cũ nhất</option>
+                        <option value="hoten_asc" selected="@(Model.SortOrder == "hoten_asc")">Họ tên thí sinh (A – Z)
+                        </option>
+                        <option value="hoten_desc" selected="@(Model.SortOrder == "hoten_desc")">Họ tên thí sinh (Z – A)
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="hs-toggle" id="hsToggle" aria-expanded="@(coLocNangCao ? "true" : "false")">
+                Bộ lọc nâng cao <span id="hsIcon">@(coLocNangCao ? "▴" : "▾")</span>
+            </button>
+
+            <div id="hsAdvanced" style="display:@(coLocNangCao ? "block" : "none")">
+                <div class="hs-grid" style="grid-template-columns:repeat(3,1fr)">
+                    <div class="hs-field">
+                        <label for="MaKhoa">Khoa</label>
+                        <select id="MaKhoa" name="MaKhoa" asp-items="Model.KhoaList" class="hs-input">
+                            <option value="">Tất cả khoa</option>
+                        </select>
+                    </div>
+                    <div class="hs-field">
+                        <label for="TrangThai">Trạng thái hồ sơ</label>
+                        <select id="TrangThai" name="TrangThai" asp-items="Model.TrangThaiList" class="hs-input">
+                            <option value="">Tất cả trạng thái</option>
+                        </select>
+                    </div>
+                    <div class="hs-field">
+                        <label>Ngày nộp từ – đến</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="date" name="NgayNopTu" value="@tuNgay" class="hs-input" aria-label="Ngày nộp từ" />
+                            <span>–</span>
+                            <input type="date" name="NgayNopDen" value="@denNgay" class="hs-input"
+                                   aria-label="Ngày nộp đến" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hs-actions">
+                <button type="submit" class="hs-btn hs-btn-primary">Áp dụng</button>
+                <a asp-action="Index" class="hs-btn">Xóa bộ lọc</a>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchKeyword))
+                {
+                    <a class="hs-chip" href="@BoLoc("searchKeyword")">Từ khóa: @Model.SearchKeyword ×</a>
+                }
+                @if (!string.IsNullOrEmpty(Model.MaKhoa?.ToString()))
+                {
+                    var tenKhoa = Model.KhoaList?.FirstOrDefault(x => x.Value == Model.MaKhoa?.ToString())?.Text ??
+                Model.MaKhoa?.ToString();
+                    <a class="hs-chip" href="@BoLoc("maKhoa")">Khoa: @tenKhoa ×</a>
+                }
+                @if (!string.IsNullOrEmpty(Model.TrangThai?.ToString()))
+                {
+                    <a class="hs-chip" href="@BoLoc("trangThai")">@Model.TrangThai ×</a>
+                }
+                @if (Model.NgayNopTu.HasValue || Model.NgayNopDen.HasValue)
+                {
+                    <a class="hs-chip" href="@BoLoc("ngayNop")">
+                        Ngày nộp: @(Model.NgayNopTu?.ToString("dd/MM") ?? "…")–@(Model.NgayNopDen?.ToString("dd/MM") ?? "…") ×
+                    </a>
+                }
+            </div>
+            <p class="hs-hint">Điều kiện tìm kiếm, lọc và sắp xếp được giữ khi chuyển trang. Sắp xếp theo ngày nộp tăng /
+                giảm hoặc tên thí sinh A–Z / Z–A.</p>
+            </form>
+
+            @* ===== Danh sách hồ sơ ===== *@
+            <div class="hs-card">
+                <h2>Danh sách hồ sơ</h2>
+                <div class="hs-wrap">
+                    <table class="hs-table">
+                        <thead>
+                            <tr>
+                                <th>Mã hồ sơ</th>
+                                <th>Thí sinh</th>
+                                <th>Ngành</th>
+                                <th>Ngày nộp</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align:right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in items)
+                            {
+                                <tr>
+                                    <td class="id">HS@(item.MaHoSo.ToString().PadLeft(4, '0'))</td>
+                                    <td>
+                                        <strong>@item.HoTenThiSinh</strong>
+                                        <span class="sm">
+                                            @item.GioiTinh · Sinh @item.NgaySinh.ToString("dd/MM/yyyy")
+                                            @if (item.DiemThiTHPT.HasValue)
+                                            {
+                                                <text> ·
+@item.DiemThiTHPT.Value.ToString("F2")@(string.IsNullOrWhiteSpace(item.ToHopThiSinh)
+                                    ? "" : " (" + item.ToHopThiSinh + ")")</text>
+                                                }
+                                            </span>
+                                        </td>
+                                        <td>@item.TenNganh<span class="sm">@item.TenKhoa</span></td>
+                                        <td>@item.NgayNop.ToString("dd/MM/yyyy")<span class="sm">@item.NgayNop.ToString("HH:mm")</span>
+                                        </td>
+                                        <td><span class="@BadgeClass(item.TrangThai)">@item.TrangThai</span></td>
+                                        <td style="text-align:right; white-space:nowrap">
+                                            @* Thao tác phù hợp với từng trạng thái, không có đổi trạng thái tùy ý *@
+                                            @switch (item.TrangThai)
+                                            {
+                                                case TrangThaiHoSo.ChoDuyet:
+                                                    <a asp-action="SoTuyen" asp-route-id="@item.MaHoSo"
+                                                       class="hs-btn hs-btn-sm hs-btn-primary">Sơ tuyển</a>
+                                                    break;
+                                                case TrangThaiHoSo.DatSoTuyen:
+                                                    <a asp-controller="LichPhongVan" asp-action="Create" asp-route-maHoSo="@item.MaHoSo"
+                                                       class="hs-btn hs-btn-sm hs-btn-primary">Lập lịch</a>
+                                                    break;
+                                                case TrangThaiHoSo.ChoPhongVan:
+                                                    <a asp-controller="LichPhongVan" asp-action="Index" asp-route-tuKhoa="@item.MaHoSo"
+                                                       class="hs-btn hs-btn-sm hs-btn-primary">Xem lịch</a>
+                                                    break;
+                                                case TrangThaiHoSo.DaPhongVan:
+                                                    <a asp-controller="LichPhongVan" asp-action="Index" asp-route-tuKhoa="@item.MaHoSo"
+                                                       class="hs-btn hs-btn-sm hs-btn-primary">Ghi kết quả</a>
+                                                    break;
+                                            }
+                                            <a asp-action="Details" asp-route-id="@item.MaHoSo" class="hs-btn hs-btn-sm">Xem chi
+                                                tiết</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!items.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="6" class="hs-empty">
+                                                <strong>Không tìm thấy hồ sơ xét tuyển nào phù hợp.</strong><br />
+                                                <span style="font-size:12px">Vui lòng thay đổi từ khóa hoặc bộ lọc để thử lại.</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="hs-paging">
+                            <span class="m">@batDau–@ketThuc / @Model.TotalItems bản ghi · @Model.PageSize / trang</span>
+                            <div class="hs-ctl">
+                                <a class="hs-btn @(Model.HasPreviousPage ? "" : "disabled")"
+                                   href="@Trang(Math.Max(Model.PageNumber - 1, 1))">‹ Trước</a>
+                                <span class="hs-chip">Trang @Model.PageNumber / @tongTrang</span>
+                                <a class="hs-btn @(Model.HasNextPage ? "" : "disabled")"
+                                   href="@Trang(Math.Min(Model.PageNumber + 1, tongTrang))">Sau ›</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hs-note">
+                        <b>Thao tác phù hợp với từng trạng thái</b>
+                        <span>Chờ duyệt → Sơ tuyển; Đạt sơ tuyển → Lập lịch; Chờ phỏng vấn → Xem lịch; Đã phỏng vấn → Ghi kết quả. Không
+                            có danh sách đổi trạng thái tùy ý.</span>
+                        </div>
+
+                        <div class="hs-foot">
+                            <span>Đề tài 21 · Nhóm 5 · ASP.NET Core MVC</span>
+                        </div>
+                    </div>
+
+                    @section Scripts {
+                        <script>
+                            (function () {
+                                var tg = document.getElementById('hsToggle'), adv = document.getElementById('hsAdvanced'), ic = document.getElementById('hsIcon');
+                                tg.addEventListener('click', function () {
+                                    var open = adv.style.display === 'none';
+                                    adv.style.display = open ? 'block' : 'none';
+                                    ic.textContent = open ? '▴' : '▾';
+                                    tg.setAttribute('aria-expanded', open);
+                                });
+                            })();
+                        </script>
+                    }

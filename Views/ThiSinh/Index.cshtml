@@ -7,106 +7,201 @@
 
 @{
     ViewData["Title"] = "Quản lý thí sinh";
+    string? tuKhoa = ViewBag.Search as string;
+    bool coTimKiem = !string.IsNullOrWhiteSpace(tuKhoa);
+    int tong = Model.Count();
+
+    // Giá trị trống hiển thị chữ mờ, không coi điểm trống là 0
+    Microsoft.AspNetCore.Html.HtmlString Val(string? v, string trong) =>
+        string.IsNullOrWhiteSpace(v)
+            ? new Microsoft.AspNetCore.Html.HtmlString("<span class=\"tl-empty\">" + System.Net.WebUtility.HtmlEncode(trong) + "</span>")
+            : new Microsoft.AspNetCore.Html.HtmlString(System.Net.WebUtility.HtmlEncode(v));
 }
 
-<div class="container-fluid py-3">
-    <h2 class="text-primary mb-3">Quản lý thí sinh</h2>
+<style>
+    .tl-page {
+        --tl-bg: #F3F6FA; --tl-surface: #FFFFFF; --tl-border: #DEE5EE;
+        --tl-primary: #2057A5; --tl-primary-dark: #133767; --tl-info: #EAF1FC;
+        --tl-text: #182B46; --tl-muted: #63738A;
+        --tl-ok-bg: #EAF6EE; --tl-ok: #23734D; --tl-off-bg: #EEF0F3;
+        font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--tl-text);
+        padding: 8px 0 24px;
+    }
+    .tl-breadcrumb { font-size: 12px; font-weight: 600; color: var(--tl-primary); margin-bottom: 20px; }
+    .tl-title { font-size: 28px; font-weight: 700; line-height: 1.2; margin: 0 0 8px; }
+    .tl-sub { font-size: 14px; color: var(--tl-muted); margin: 0 0 24px; }
 
-    <form method="get"
-          asp-controller="ThiSinh"
-          asp-action="Index"
-          class="row g-2 mb-3">
+    .tl-card { background: var(--tl-surface); border: 1px solid var(--tl-border); border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    .tl-card h2 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
 
-        <div class="col-md-5">
-            <input type="search"
-                   name="search"
-                   value="@ViewBag.Search"
-                   class="form-control"
-                   placeholder="Tìm theo họ tên, email, số điện thoại hoặc tên đăng nhập..." />
-        </div>
+    .tl-search { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .tl-field { flex: 1 1 320px; display: flex; flex-direction: column; gap: 7px; }
+    .tl-label { font-size: 13px; font-weight: 600; margin: 0; }
+    .tl-input {
+        font-size: 14px; padding: 12px; border: 1px solid var(--tl-border); border-radius: 6px;
+        color: var(--tl-text); background: var(--tl-surface); width: 100%;
+    }
+    .tl-input:focus { border-color: var(--tl-primary); box-shadow: 0 0 0 3px rgba(32, 87, 165, .18); outline: none; }
+    .tl-actions { display: flex; gap: 12px; }
+    .tl-btn {
+        font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 6px; line-height: 1.2;
+        border: 1px solid var(--tl-border); background: var(--tl-surface); color: var(--tl-text);
+        text-decoration: none; cursor: pointer; display: inline-block; white-space: nowrap;
+    }
+    .tl-btn:hover { background: var(--tl-bg); color: var(--tl-text); }
+    .tl-btn-primary { background: var(--tl-primary); border-color: var(--tl-primary); color: #fff; }
+    .tl-btn-primary:hover { background: var(--tl-primary-dark); border-color: var(--tl-primary-dark); color: #fff; }
+    .tl-btn:focus-visible { outline: 2px solid var(--tl-primary); outline-offset: 2px; }
+    .tl-note { font-size: 12px; color: var(--tl-muted); margin: 12px 0 0; }
 
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary">
-                Tìm kiếm
-            </button>
+    .tl-table-wrap { border: 1px solid var(--tl-border); border-radius: 6px; overflow-x: auto; }
+    .tl-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+    .tl-table thead th {
+        background: var(--tl-bg); color: var(--tl-muted); font-size: 12px; font-weight: 600;
+        text-align: left; padding: 13px 14px; white-space: nowrap;
+    }
+    .tl-table tbody td { padding: 15px 14px; border-top: 1px solid var(--tl-border); vertical-align: middle; }
+    .tl-table tbody tr:hover { background: var(--tl-info); }
+    .tl-name { font-weight: 600; }
+    .tl-code { font-size: 12px; color: var(--tl-muted); }
+    .tl-stack { display: flex; flex-direction: column; gap: 2px; }
+    .tl-empty { color: var(--tl-muted); font-style: italic; }
+    .tl-link { color: var(--tl-primary); text-decoration: none; font-weight: 600; }
+    .tl-link:hover { text-decoration: underline; }
+    .tl-link:focus-visible { outline: 2px solid var(--tl-primary); outline-offset: 2px; }
 
-            <a asp-controller="ThiSinh" asp-action="Index"
-               class="btn btn-outline-secondary">
-                Xóa lọc
-            </a>
-        </div>
-    </form>
+    .tl-badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 6px; white-space: nowrap; }
+    .tl-badge-ok { background: var(--tl-ok-bg); color: var(--tl-ok); }
+    .tl-badge-off { background: var(--tl-off-bg); color: var(--tl-muted); }
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped table-hover align-middle">
-            <thead class="table-primary">
-                <tr>
-                    <th>Mã thí sinh</th>
-                    <th>Họ tên</th>
-                    <th>Tên đăng nhập</th>
-                    <th>Email</th>
-                    <th>Số điện thoại</th>
-                    <th>Điểm THPT</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
+    .tl-blank { text-align: center; padding: 40px 16px; }
+    .tl-blank strong { display: block; font-size: 16px; margin-bottom: 6px; }
+    .tl-blank p { font-size: 13px; color: var(--tl-muted); margin: 0 0 16px; }
 
-            <tbody>
-                @if (!Model.Any())
+    .tl-foot { font-size: 12px; color: var(--tl-muted); margin-top: 16px; }
+
+    .tl-notice { background: var(--tl-info); border-radius: 6px; padding: 16px; }
+    .tl-notice strong { display: block; font-size: 14px; font-weight: 600; color: var(--tl-primary); margin-bottom: 6px; }
+    .tl-notice span { font-size: 13px; line-height: 1.5; }
+
+    @@media (max-width: 575.98px) {
+        .tl-title { font-size: 24px; }
+        .tl-card { padding: 16px; }
+        .tl-actions { width: 100%; }
+        .tl-actions .tl-btn { flex: 1; text-align: center; }
+    }
+</style>
+
+<div class="tl-page">
+    <div class="tl-breadcrumb">19 / CÁN BỘ TUYỂN SINH / Thí sinh</div>
+    <h1 class="tl-title">Quản lý thí sinh</h1>
+    <p class="tl-sub">@tong thí sinh · Tra cứu thông tin cá nhân, học tập và tài khoản liên kết.</p>
+
+    <section class="tl-card">
+        <h2>Tìm kiếm</h2>
+        <form method="get" asp-controller="ThiSinh" asp-action="Index" class="tl-search">
+            <div class="tl-field">
+                <label for="search" class="tl-label">Từ khóa</label>
+                <input id="search" type="search" name="search" value="@tuKhoa" class="tl-input"
+                       placeholder="Họ tên, email, số điện thoại hoặc tên đăng nhập…" />
+            </div>
+            <div class="tl-actions">
+                <button type="submit" class="tl-btn tl-btn-primary">Tìm kiếm</button>
+                @if (coTimKiem)
                 {
+                    <a asp-controller="ThiSinh" asp-action="Index" class="tl-btn">Xóa lọc</a>
+                }
+            </div>
+        </form>
+    </section>
+
+    <section class="tl-card">
+        <h2>Danh sách thí sinh</h2>
+
+        <div class="tl-table-wrap">
+            <table class="tl-table">
+                <thead>
                     <tr>
-                        <td colspan="8" class="text-center">
-                            Không tìm thấy thí sinh phù hợp.
+                        <th>Thí sinh</th>
+                        <th>Tài khoản liên kết</th>
+                        <th>Liên hệ</th>
+                        <th>Tổ hợp / Điểm</th>
+                        <th>Hoạt động</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model)
+                {
+                    var diem = item.DiemThiTHPT?.ToString("0.##");
+                    <tr>
+                        <td>
+                            <div class="tl-stack">
+                                <span class="tl-name">@item.HoTen</span>
+                                <span class="tl-code">Mã @item.MaThiSinh</span>
+                            </div>
+                        </td>
+                        <td>@Val(item.TaiKhoan?.TenDangNhap, "Chưa có")</td>
+                        <td>
+                            <div class="tl-stack">
+                                <span>@Val(item.Email, "Chưa cập nhật")</span>
+                                <span class="tl-code">@Val(item.SoDienThoai, "Chưa cập nhật")</span>
+                            </div>
+                        </td>
+                        <td>
+                            @if (string.IsNullOrWhiteSpace(item.ToHopXetTuyen) && diem == null)
+                            {
+                                <span class="tl-empty">Chưa khai báo</span>
+                            }
+                            else
+                            {
+                                <div class="tl-stack">
+                                    <span>@Val(item.ToHopXetTuyen, "Chưa khai báo tổ hợp")</span>
+                                    <span class="tl-code">@Val(diem, "Chưa có điểm")</span>
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <span class="tl-badge @(item.TrangThai ? "tl-badge-ok" : "tl-badge-off")">
+                                @(item.TrangThai ? "Hoạt động" : "Ngừng hoạt động")
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-controller="ThiSinh" asp-action="Details" asp-route-id="@item.MaThiSinh" class="tl-link">Xem chi tiết</a>
                         </td>
                     </tr>
                 }
-                else
-                {
-                    @foreach (var item in Model)
+                </tbody>
+            </table>
+
+            @if (tong == 0)
+            {
+                <div class="tl-blank">
+                    <strong>Không tìm thấy thí sinh</strong>
+                    <p>
+                        @if (coTimKiem)
+                        {
+                            <text>Không có thí sinh nào khớp từ khóa “@tuKhoa”.</text>
+                        }
+                        else
+                        {
+                            <text>Chưa có thí sinh nào trong hệ thống.</text>
+                        }
+                    </p>
+                    @if (coTimKiem)
                     {
-                        <tr>
-                            <td>@item.MaThiSinh</td>
-                            <td>@item.HoTen</td>
-                            <td>
-                                @(item.TaiKhoan?.TenDangNhap ?? "Chưa có")
-                            </td>
-                            <td>
-                                @(item.Email ?? "Chưa cập nhật")
-                            </td>
-                            <td>
-                                @(item.SoDienThoai ?? "Chưa cập nhật")
-                            </td>
-                            <td>
-                                @(item.DiemThiTHPT?.ToString("0.##")
-                                    ?? "Chưa khai báo")
-                            </td>
-                            <td>
-                                @if (item.TrangThai)
-                                {
-                                    <span class="badge bg-success">
-                                        Hoạt động
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">
-                                        Ngừng hoạt động
-                                    </span>
-                                }
-                            </td>
-                            <td>
-                                <a asp-controller="ThiSinh"
-                                   asp-action="Details"
-                                   asp-route-id="@item.MaThiSinh"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Chi tiết
-                                </a>
-                            </td>
-                        </tr>
+                        <a asp-controller="ThiSinh" asp-action="Index" class="tl-btn">Xóa lọc</a>
                     }
-                }
-            </tbody>
-        </table>
+                </div>
+            }
+        </div>
+
+        <p class="tl-foot">Hiển thị @tong thí sinh@(coTimKiem ? " theo từ khóa đã nhập" : "").</p>
+    </section>
+
+    <div class="tl-notice">
+        <strong>Thông tin có thể chưa khai báo</strong>
+        <span>Điểm và tổ hợp có thể để trống trên hồ sơ cá nhân. Hiển thị "Chưa khai báo", không coi điểm trống là 0. Số điện thoại và email thí sinh là tùy chọn.</span>
     </div>
 </div>

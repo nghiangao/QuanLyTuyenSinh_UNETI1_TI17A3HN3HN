@@ -144,10 +144,10 @@ else if (Model.VaiTro == VaiTro.Admin)
             <p>Xin chào, <strong>@Model.HoTen</strong>! Bạn có toàn quyền quản trị danh mục, phân quyền và giám sát toàn hệ thống.</p>
         </div>
         <a asp-controller="LichPhongVan" asp-action="ThongKe" class="ui-btn ui-btn--outline">
-            <partial name="_Icon" model='("clipboard-check", 16)' /><span>Báo cáo thống kê LINQ</span>
+            <partial name="_Icon" model='("clipboard-check", 16)' /><span>Báo cáo thống kê</span>
         </a>
         <a asp-controller="LichPhongVan" asp-action="Dashboard" class="ui-btn ui-btn--primary">
-            <partial name="_Icon" model='("chart-no-axes-combined", 16)' /><span>Dashboard 9 chỉ số</span>
+            <partial name="_Icon" model='("chart-no-axes-combined", 16)' /><span>Tổng quan</span>
         </a>
     </div>
 
@@ -178,39 +178,39 @@ else if (Model.VaiTro == VaiTro.Admin)
         <header class="ui-card__head">
             <div>
                 <h2>Trung tâm điều hành các phân hệ</h2>
-                <p>Truy cập nhanh 6 module của hệ thống</p>
+                <p>Truy cập nhanh các chức năng của hệ thống</p>
             </div>
         </header>
         <div class="ui-modules">
             <a asp-controller="Khoa" asp-action="Index" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("building-2", 20)' /></span>
-                <strong>Module 1: Khoa &amp; Tài khoản</strong>
+                <strong>Khoa &amp; Tài khoản</strong>
                 <span>Quản lý thêm, sửa, xóa khoa chuyên môn; kiểm soát ràng buộc khoa đang có ngành tuyển sinh.</span>
             </a>
             <a asp-controller="NganhTuyenSinh" asp-action="Index" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("graduation-cap", 20)' /></span>
-                <strong>Module 2: Ngành tuyển sinh</strong>
+                <strong>Ngành tuyển sinh</strong>
                 <span>Quản lý ngành, chỉ tiêu, tổ hợp xét tuyển, hạn nộp hồ sơ; tìm kiếm và phân trang.</span>
             </a>
             <a asp-controller="ThiSinh" asp-action="Index" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("users", 20)' /></span>
-                <strong>Module 3: Quản lý thí sinh</strong>
+                <strong>Quản lý thí sinh</strong>
                 <span>Giám sát danh sách thí sinh, điểm thi THPT, tổ hợp và thành tích.</span>
             </a>
             <a asp-controller="HoSoXetTuyen" asp-action="Index" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("files", 20)' /></span>
-                <strong>Module 4: Sơ tuyển hồ sơ</strong>
+                <strong>Sơ tuyển hồ sơ</strong>
                 <span>Thẩm định sơ tuyển (Đạt / Không đạt), cập nhật nhận xét và cảnh báo vượt chỉ tiêu.</span>
             </a>
             <a asp-controller="LichPhongVan" asp-action="Index" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("calendar-days", 20)' /></span>
-                <strong>Module 5: Lịch &amp; Kết quả</strong>
+                <strong>Lịch &amp; Kết quả</strong>
                 <span>Lập lịch phỏng vấn (chống trùng lịch), ghi nhận điểm 0-100, xác nhận trúng tuyển.</span>
             </a>
             <a asp-controller="LichPhongVan" asp-action="Dashboard" class="ui-module">
                 <span class="ui-module__icon"><partial name="_Icon" model='("chart-no-axes-combined", 20)' /></span>
-                <strong>M5.5 &amp; M5.6: Báo cáo LINQ</strong>
-                <span>Dashboard 9 chỉ số tuyển sinh và 10 chuyên đề thống kê phân tích bằng LINQ.</span>
+                <strong>Báo cáo</strong>
+                <span>Tổng quan 9 chỉ số tuyển sinh và 10 chuyên đề thống kê phân tích.</span>
             </a>
         </div>
     </article>

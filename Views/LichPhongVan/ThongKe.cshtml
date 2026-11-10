@@ -1,354 +1,879 @@
 @*
     Họ và tên: Mã Đức Thịnh
     Mã sinh viên: 23103100314
-    Nội dung thực hiện: Module 5 - Giao diện Thống kê báo cáo bằng LINQ (Đề mục 9.6: 10 báo cáo phân tích chuyên sâu).
+    Nội dung thực hiện: Module 5 - Giao diện Thống kê báo cáo bằng LINQ (Đề mục 9.6: 10 báo cáo phân tích chuyên sâu),
+    dàn lại theo thiết kế Figma "Thống kê tuyển sinh": bộ lọc phạm vi, 4 chỉ số tổng hợp, quy mô theo khoa,
+    hồ sơ theo trạng thái, biểu đồ theo tháng, ngành nổi bật và bảng hiệu quả theo ngành.
+
+    Bản đồ 10 báo cáo -> khối giao diện:
+      1 NganhTheoKhoa            -> bảng "Quy mô và trúng tuyển theo khoa"
+      2 HoSoTheoNganh            -> bảng "Hiệu quả tuyển sinh theo ngành"
+      3 HoSoTheoTrangThai        -> "Số hồ sơ theo trạng thái"
+      4 DatSoTuyenTheoNganh      -> cột "Đạt sơ tuyển" (bảng theo ngành)
+      5 NganhNhieuHoSoNhat       -> thẻ "Ngành nhận nhiều hồ sơ nhất"
+      6 TrungTuyenTheoKhoa       -> cột "Trúng tuyển" (bảng theo khoa)
+      7 HoSoTheoThang + 8 LichTheoThang -> biểu đồ cột theo tháng
+      9 TyLeQuaSoTuyenTheoNganh  -> cột "Tỷ lệ qua sơ tuyển"
+      10 TyLeTrungTuyenTrenDaPV  -> thẻ "Tỷ lệ trúng tuyển" + "Đã phỏng vấn"
+
+    Tham số GET view gửi lên: khoa, nganh, tuThang, denThang (định dạng yyyy-MM).
 *@
+@using System.Globalization
 @model ThongKeViewModel
 
 @{
-    ViewData["Title"] = "Thống kê Tuyển Sinh";
+    ViewData["Title"] = "Thống kê tuyển sinh";
+    var inv = CultureInfo.InvariantCulture;
+
+    string selKhoa = Context.Request.Query["khoa"].ToString();
+    string selNganh = Context.Request.Query["nganh"].ToString();
+    string tuThang = Context.Request.Query["tuThang"].ToString();
+    string denThang = Context.Request.Query["denThang"].ToString();
+
+    // ---- Số liệu tổng hợp (suy ra từ ViewModel hiện có) ----
+    int tongHoSo = Model.HoSoTheoTrangThai.Sum(x => (int)x.SoLuong);
+    int tongDatSoTuyen = Model.TyLeQuaSoTuyenTheoNganh.Sum(x => (int)x.SoDatSoTuyen);
+    int soNganh = Model.HoSoTheoNganh.Count();
+    int soKhoa = Model.NganhTheoKhoa.Count();
+    var pv = Model.TyLeTrungTuyenTrenDaPV;
+    double tyLeSoTuyen = tongHoSo == 0 ? 0 : tongDatSoTuyen * 100.0 / tongHoSo;
+
+    string Pct(double v) => v.ToString("0.0", CultureInfo.GetCultureInfo("vi-VN")) + "%";
+    string W(double v) => Math.Min(Math.Max(v, 0), 100).ToString("0.##", inv) + "%";
+
+    // ---- Khoa: ghép số ngành/chỉ tiêu với số trúng tuyển ----
+    var trungTuyenKhoa = Model.TrungTuyenTheoKhoa.ToDictionary(x => x.TenKhoa, x => (int)x.SoLuongTrungTuyen);
+    int tongNganhKhoa = Model.NganhTheoKhoa.Sum(x => (int)x.SoLuongNganh);
+    int tongChiTieu = Model.NganhTheoKhoa.Sum(x => (int)x.TongChiTieu);
+    int tongTrung = trungTuyenKhoa.Values.Sum();
+
+    // ---- Biểu đồ theo tháng: hợp nhất hồ sơ + lịch ----
+    var thangs = Model.HoSoTheoThang.Select(x => (x.Nam, x.Thang))
+                  .Union(Model.LichTheoThang.Select(x => (x.Nam, x.Thang)))
+                  .OrderBy(x => x.Nam).ThenBy(x => x.Thang).ToList();
+    int Hs(int n, int t) => Model.HoSoTheoThang.Where(x => x.Nam == n && x.Thang == t).Sum(x => (int)x.SoLuong);
+    int Lich(int n, int t) => Model.LichTheoThang.Where(x => x.Nam == n && x.Thang == t).Sum(x => (int)x.SoLuong);
+    int maxCot = Math.Max(1, thangs.Select(x => Math.Max(Hs(x.Nam, x.Thang), Lich(x.Nam,
+x.Thang))).DefaultIfEmpty(1).Max());
+    int tongHsThang = Model.HoSoTheoThang.Sum(x => (int)x.SoLuong);
+    int tongLichThang = Model.LichTheoThang.Sum(x => (int)x.SoLuong);
+
+    // ---- Bảng theo ngành: ghép HoSoTheoNganh + TyLeQuaSoTuyenTheoNganh ----
+    var soTuyen = Model.TyLeQuaSoTuyenTheoNganh.ToDictionary(x => x.TenNganh, x => x);
+
+    var mauTrangThai = new[] { "#996315", "#91a1b1", "#3267a8", "#087f82", "#6f85ac", "#24744e", "#b34545" };
+    int maxTrangThai = Math.Max(1, Model.HoSoTheoTrangThai.Select(x => (int)x.SoLuong).DefaultIfEmpty(1).Max());
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1 text-primary fw-bold">📈 Báo Cáo & Thống Kê Tuyển Sinh</h2>
-        <p class="text-muted mb-0">Áp dụng LINQ trên EF Core 10: Count, Sum, GroupBy, OrderBy, OrderByDescending, Any</p>
-    </div>
-    <div>
-        <a asp-action="Dashboard" class="btn btn-outline-primary me-2">📊 Xem Dashboard</a>
-        <a asp-action="Index" class="btn btn-primary">📅 Danh sách lịch</a>
-    </div>
-</div>
+<style>
+    .tk {
+        --ink: #182e43;
+        --muted: #64768a;
+        --soft: #91a1b1;
+        --line: #dfe6ee;
+        --bg: #f3f6fa;
+        --teal: #087f82;
+        --teal-soft: #e7f5f3;
+        --navy: #102d49;
+        --navy2: #1d405e;
+        --blue-soft: #eaf1fb;
+        --blue: #3267a8;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--ink);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
 
-@* =========================================================================
-   5. NGÀNH NHẬN NHIỀU HỒ SƠ NHẤT (Highlight Card)
-   LINQ: OrderByDescending(Count).FirstOrDefaultAsync()
-   ========================================================================= *@
-@if (Model.NganhNhieuHoSoNhat != null)
-{
-    <div class="alert alert-primary shadow-sm border-0 d-flex align-items-center justify-content-between p-3 mb-4">
+    .tk * {
+        box-sizing: border-box;
+    }
+
+    .tk-crumb {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .tk-pill {
+        padding: 4px 9px;
+        border-radius: 100px;
+        background: #eef2f6;
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .tk-pill-teal {
+        background: var(--teal-soft);
+        color: var(--teal);
+        font-weight: 600;
+    }
+
+    .tk-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .tk-head h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 6px;
+        line-height: 1.25;
+    }
+
+    .tk-head p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+    .tk-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .tk-btn:hover {
+        background: var(--bg);
+        color: var(--ink);
+    }
+
+    .tk-btn-teal {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: #fff;
+    }
+
+    .tk-btn-teal:hover {
+        background: #066a6c;
+        color: #fff;
+    }
+
+    .tk-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 24px;
+    }
+
+    .tk-card h2 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 3px;
+    }
+
+    .tk-card .tk-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 18px;
+    }
+
+    .tk-scope {
+        display: flex;
+        gap: 16px;
+        align-items: flex-end;
+        padding: 20px;
+    }
+
+    .tk-scope .tk-f {
+        flex: 1;
+    }
+
+    .tk-f label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .tk-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font-size: 14px;
+        color: var(--ink);
+    }
+
+    .tk-input:focus {
+        outline: 2px solid var(--teal-soft);
+        border-color: var(--teal);
+    }
+
+    .tk-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+
+    .tk-kpi {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .tk-kpi .l {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .tk-kpi .v {
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .tk-kpi .s {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .tk-row {
+        display: grid;
+        gap: 20px;
+    }
+
+    .tk-row-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .tk-row-3 {
+        grid-template-columns: 836fr 456fr;
+    }
+
+    .tk-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .tk-table th {
+        background: #f3f6fa;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 12px;
+        padding: 9px 8px;
+        text-align: left;
+    }
+
+    .tk-table td {
+        padding: 12px 8px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .tk-table .n {
+        text-align: right;
+    }
+
+    .tk-table .teal {
+        color: var(--teal);
+        font-weight: 700;
+    }
+
+    .tk-table tfoot td {
+        border-bottom: 0;
+        font-weight: 700;
+        padding-top: 14px;
+    }
+
+    .tk-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+
+    .tk-bar .lb {
+        width: 144px;
+        color: var(--muted);
+        flex-shrink: 0;
+    }
+
+    .tk-bar .tr {
+        flex: 1;
+        height: 13px;
+        background: #f3f6fa;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .tk-bar .fl {
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    .tk-bar .nm {
+        width: 28px;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .tk-divider {
+        height: 1px;
+        background: var(--line);
+        margin: 14px 0;
+    }
+
+    .tk-note {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0;
+    }
+
+    .tk-legend {
+        display: flex;
+        gap: 20px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 14px;
+    }
+
+    .tk-legend i {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        margin-right: 7px;
+    }
+
+    .tk-chart {
+        display: flex;
+        gap: 22px;
+        height: 230px;
+    }
+
+    .tk-axis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 194px;
+        font-size: 12px;
+        color: var(--soft);
+        text-align: right;
+        width: 24px;
+    }
+
+    .tk-cols {
+        flex: 1;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .tk-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tk-pair {
+        height: 188px;
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding: 0 12px;
+    }
+
+    .tk-pair div {
+        width: 37px;
+        border-radius: 4px 4px 0 0;
+        position: relative;
+        min-height: 2px;
+    }
+
+    .tk-pair span {
+        position: absolute;
+        top: -19px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .tk-col small {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .tk-hero {
+        background: var(--navy);
+        color: #fff;
+        border-radius: 10px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .tk-hero .t {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #c5d7e5;
+    }
+
+    .tk-hero .name {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .tk-hero .big {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+    }
+
+    .tk-hero .big b {
+        font-size: 44px;
+        line-height: 1.2;
+    }
+
+    .tk-hero .big span,
+    .tk-hero .d {
+        font-size: 13px;
+        color: #c5d7e5;
+    }
+
+    .tk-info {
+        background: var(--blue-soft);
+        border-radius: 6px;
+        padding: 16px;
+        color: var(--blue);
+        font-size: 13px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .tk-info b {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .tk-detail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .tk-detail-head h2 {
+        font-size: 20px;
+        margin: 0 0 4px;
+    }
+
+    .tk-detail-head p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .tk-big {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .tk-big .tk-table th {
+        padding: 14px 16px;
+        background: #f7f9fc;
+    }
+
+    .tk-big .tk-table td {
+        padding: 12px 16px;
+    }
+
+    .tk-big .tk-table tbody tr:nth-child(even) td {
+        background: #fcfdfe;
+    }
+
+    .tk-big .tk-table tfoot td {
+        background: var(--teal-soft);
+        color: var(--teal);
+    }
+
+    .tk-big .code {
+        display: block;
+        font-size: 12px;
+        color: var(--soft);
+        font-weight: 400;
+    }
+
+    .tk-mini {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tk-mini .tr {
+        flex: 1;
+        height: 8px;
+        background: #eef2f6;
+        border-radius: 4px;
+        min-width: 60px;
+        overflow: hidden;
+    }
+
+    .tk-mini .fl {
+        height: 100%;
+        background: var(--teal);
+        border-radius: 4px;
+    }
+
+    .tk-foot {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--soft);
+        padding-top: 4px;
+    }
+
+    .tk-empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 24px;
+        font-size: 13px;
+    }
+
+    @@media (max-width:1100px) {
+        .tk-kpis {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .tk-row-2,
+        .tk-row-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .tk-scope {
+            flex-wrap: wrap;
+        }
+
+        .tk-scope .tk-f {
+            flex: 1 1 220px;
+        }
+
+        .tk-head {
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width:600px) {
+        .tk-kpis {
+            grid-template-columns: 1fr;
+        }
+
+        .tk-head h1 {
+            font-size: 26px;
+        }
+
+        .tk-bar .lb {
+            width: 100px;
+        }
+    }
+
+    @@media print {
+
+        .tk-scope,
+        .tk-btn {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="tk">
+
+    <div class="tk-crumb">
+        <span>Điều hành tuyển sinh &nbsp;/&nbsp; Module 5 &nbsp;/&nbsp; Thống kê tuyển sinh</span>
+        <span class="tk-pill">Dữ liệu minh họa</span>
+    </div>
+
+    <div class="tk-head">
         <div>
-            <span class="badge bg-danger me-2">Top 1 Hồ sơ</span>
-            <strong>Ngành tuyển sinh nhận nhiều hồ sơ nhất:</strong>
-            <span class="fs-5 text-dark fw-bold ms-2">@Model.NganhNhieuHoSoNhat.TenNganh</span>
-            <span class="text-muted small">(@Model.NganhNhieuHoSoNhat.TenKhoa)</span>
+            <h1>Thống kê tuyển sinh</h1>
+            <p>Từ quy mô đào tạo đến hiệu quả xét tuyển · Kỳ tuyển sinh đại học chính quy @DateTime.Now.Year.</p>
         </div>
-        <div class="text-end">
-            <span class="badge bg-primary fs-6">@Model.NganhNhieuHoSoNhat.SoLuongHoSo hồ sơ</span>
-            <span class="text-muted small ms-2">/ Chỉ tiêu: @Model.NganhNhieuHoSoNhat.ChiTieu</span>
+        <div class="d-flex gap-2">
+            <a asp-action="Dashboard" class="tk-btn">Tổng quan</a>
+            <a asp-action="Index" class="tk-btn">Danh sách lịch</a>
+            <button type="button" class="tk-btn" onclick="window.print()">⬇ Xuất báo cáo</button>
         </div>
     </div>
-}
 
-<div class="row g-4">
-    @* =========================================================================
-       1. Số ngành tuyển sinh theo khoa
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>1. Số ngành tuyển sinh theo khoa</span>
-                <span class="badge bg-light text-dark border">GroupBy(Khoa)</span>
+    @* ===== Phạm vi báo cáo ===== *@
+    <form method="get" class="tk-card tk-scope">
+        <div class="tk-f">
+            <label for="khoa">Khoa</label>
+            <select id="khoa" name="khoa" class="tk-input">
+                <option value="">Tất cả khoa</option>
+                @foreach (var k in Model.NganhTheoKhoa)
+                {
+                    <option value="@k.TenKhoa" selected="@(k.TenKhoa == selKhoa)">@k.TenKhoa</option>
+                }
+            </select>
+        </div>
+        <div class="tk-f">
+            <label for="nganh">Ngành</label>
+            <select id="nganh" name="nganh" class="tk-input">
+                <option value="">Tất cả ngành</option>
+                @foreach (var n in Model.HoSoTheoNganh)
+                {
+                    <option value="@n.TenNganh" selected="@(n.TenNganh == selNganh)">@n.TenNganh</option>
+                }
+            </select>
+        </div>
+        <div class="tk-f">
+            <label>Khoảng tháng</label>
+            <div class="d-flex align-items-center gap-2">
+                <input type="month" name="tuThang" value="@tuThang" class="tk-input" aria-label="Từ tháng" />
+                <span>–</span>
+                <input type="month" name="denThang" value="@denThang" class="tk-input" aria-label="Đến tháng" />
             </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
+        </div>
+        <button type="submit" class="tk-btn tk-btn-teal">Xem báo cáo</button>
+    </form>
+
+    @* ===== 4 chỉ số tổng hợp ===== *@
+    <div class="tk-kpis">
+        <div class="tk-card tk-kpi">
+            <span class="l">Hồ sơ trong kỳ</span>
+            <span class="v">@tongHoSo</span>
+            <span class="s">@soNganh ngành · @soKhoa khoa</span>
+        </div>
+        <div class="tk-card tk-kpi">
+            <span class="l">Đạt sơ tuyển lũy kế</span>
+            <span class="v">@tongDatSoTuyen / @tongHoSo</span>
+            <span class="s">@Pct(tyLeSoTuyen) trên tổng hồ sơ đã nộp</span>
+        </div>
+        <div class="tk-card tk-kpi">
+            <span class="l">Đã phỏng vấn lũy kế</span>
+            <span class="v">@pv.TongHoSoDaPhongVan</span>
+            <span class="s">@pv.SoHoSoTrungTuyen trúng + @pv.SoHoSoKhongTrungTuyen không trúng</span>
+        </div>
+        <div class="tk-card tk-kpi">
+            <span class="l">Tỷ lệ trúng tuyển</span>
+            <span class="v" style="color:var(--teal)">@Pct((double)pv.TyLeTrungTuyenPhanTram)</span>
+            <span class="s">@pv.SoHoSoTrungTuyen trúng tuyển / @pv.TongHoSoDaPhongVan đã phỏng vấn lũy kế</span>
+        </div>
+    </div>
+
+    @* ===== Quy mô theo khoa + Trạng thái hồ sơ ===== *@
+    <div class="tk-row tk-row-2">
+        <div class="tk-card">
+            <h2>Quy mô và trúng tuyển theo khoa</h2>
+            <p class="tk-sub">Số ngành, tổng chỉ tiêu và số hồ sơ có kết quả Trúng tuyển</p>
+            <table class="tk-table">
+                <thead>
+                    <tr>
+                        <th>Khoa</th>
+                        <th class="n">Số ngành</th>
+                        <th class="n">Chỉ tiêu</th>
+                        <th class="n">Trúng tuyển</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var k in Model.NganhTheoKhoa)
+                    {
                         <tr>
-                            <th>Khoa đào tạo</th>
-                            <th class="text-center">Số ngành</th>
-                            <th class="text-end">Tổng chỉ tiêu</th>
+                            <td>@k.TenKhoa</td>
+                            <td class="n" style="color:var(--muted)">@k.SoLuongNganh</td>
+                            <td class="n" style="color:var(--muted)">@k.TongChiTieu</td>
+                            <td class="n teal">@(trungTuyenKhoa.TryGetValue(k.TenKhoa, out var tt) ? tt : 0)</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.NganhTheoKhoa)
-                        {
-                            <tr>
-                                <td>@item.TenKhoa</td>
-                                <td class="text-center"><span class="badge bg-info text-dark">@item.SoLuongNganh</span></td>
-                                <td class="text-end fw-semibold">@item.TongChiTieu</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @* =========================================================================
-       2. Số hồ sơ theo từng ngành tuyển sinh
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>2. Số hồ sơ theo từng ngành</span>
-                <span class="badge bg-light text-dark border">Count(HoSo)</span>
-            </div>
-            <div class="card-body p-0" style="max-height: 350px; overflow-y: auto;">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light sticky-top">
+                    }
+                    @if (!Model.NganhTheoKhoa.Any())
+                    {
                         <tr>
-                            <th>Tên ngành</th>
-                            <th class="text-center">Chỉ tiêu</th>
-                            <th class="text-end">Số hồ sơ</th>
+                            <td colspan="4" class="tk-empty">Chưa có dữ liệu</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.HoSoTheoNganh)
-                        {
-                            <tr>
-                                <td>@item.TenNganh</td>
-                                <td class="text-center text-muted">@item.ChiTieu</td>
-                                <td class="text-end"><span class="badge bg-primary">@item.SoLuongHoSo</span></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Tổng cộng</td>
+                        <td class="n">@tongNganhKhoa</td>
+                        <td class="n">@tongChiTieu</td>
+                        <td class="n">@tongTrung</td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
-    </div>
 
-    @* =========================================================================
-       3. Số hồ sơ theo trạng thái
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>3. Số hồ sơ theo trạng thái</span>
-                <span class="badge bg-light text-dark border">GroupBy(TrangThai)</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Trạng thái hồ sơ</th>
-                            <th class="text-center">Số lượng</th>
-                            <th class="text-end">Tỷ lệ (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.HoSoTheoTrangThai)
-                        {
-                            <tr>
-                                <td><span class="badge bg-secondary">@item.TrangThai</span></td>
-                                <td class="text-center fw-bold">@item.SoLuong</td>
-                                <td class="text-end">
-                                    <div class="progress" style="height: 16px;">
-                                        <div class="progress-bar bg-success" style="width: @item.TyLePhanTram%;">@item.TyLePhanTram%</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @* =========================================================================
-       4. Số hồ sơ đạt sơ tuyển theo ngành
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>4. Đạt sơ tuyển theo ngành</span>
-                <span class="badge bg-light text-dark border">Where(DatSoTuyen)</span>
-            </div>
-            <div class="card-body p-0" style="max-height: 350px; overflow-y: auto;">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light sticky-top">
-                        <tr>
-                            <th>Tên ngành</th>
-                            <th class="text-end">Hồ sơ đạt sơ tuyển</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.DatSoTuyenTheoNganh)
-                        {
-                            <tr>
-                                <td>@item.TenNganh</td>
-                                <td class="text-end"><span class="badge bg-success">@item.SoHoSoDatSoTuyen</span></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @* =========================================================================
-       6. Số hồ sơ trúng tuyển theo khoa
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>6. Số hồ sơ trúng tuyển theo khoa</span>
-                <span class="badge bg-light text-dark border">Count(TrungTuyen)</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Khoa đào tạo</th>
-                            <th class="text-end">Số trúng tuyển</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.TrungTuyenTheoKhoa)
-                        {
-                            <tr>
-                                <td>@item.TenKhoa</td>
-                                <td class="text-end"><span class="badge bg-success fs-6">@item.SoLuongTrungTuyen</span></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @* =========================================================================
-       10. Tỷ lệ trúng tuyển trên số đã phỏng vấn
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>10. Tỷ lệ trúng tuyển sau phỏng vấn</span>
-                <span class="badge bg-light text-dark border">TrungTuyen / DaPV</span>
-            </div>
-            <div class="card-body text-center p-4">
-                <div class="display-4 fw-bold text-success mb-2">@Model.TyLeTrungTuyenTrenDaPV.TyLeTrungTuyenPhanTram%</div>
-                <p class="text-muted mb-3">Tỷ lệ trúng tuyển trên tổng số hồ sơ đã thực hiện phỏng vấn</p>
-                <div class="row g-2 justify-content-center">
-                    <div class="col-4">
-                        <div class="border rounded p-2 bg-light">
-                            <div class="small text-muted">Đã phỏng vấn</div>
-                            <div class="fw-bold fs-5">@Model.TyLeTrungTuyenTrenDaPV.TongHoSoDaPhongVan</div>
+        <div class="tk-card">
+            <h2>Số hồ sơ theo trạng thái</h2>
+            <p class="tk-sub">Trạng thái hiện tại · Tổng @tongHoSo hồ sơ</p>
+            @{
+                var i = 0;
+            }
+            @foreach (var t in Model.HoSoTheoTrangThai)
+            {
+                var mau = mauTrangThai[i++ % mauTrangThai.Length];
+                <div class="tk-bar" title="@t.TyLePhanTram%">
+                    <span class="lb">@t.TrangThai</span>
+                    <div class="tr">
+                        <div class="fl"
+                             style="width:@W(tongHoSo == 0 ? 0 : (int)t.SoLuong * 100.0 / maxTrangThai); background:@mau">
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="border rounded p-2 bg-light">
-                            <div class="small text-success">Trúng tuyển</div>
-                            <div class="fw-bold fs-5 text-success">@Model.TyLeTrungTuyenTrenDaPV.SoHoSoTrungTuyen</div>
-                        </div>
+                    <span class="nm">@t.SoLuong</span>
+                </div>
+            }
+            <div class="tk-divider"></div>
+            <p class="tk-note">Các nhóm trạng thái hiện tại không trùng nhau, nên số "Đạt sơ tuyển" hiện tại khác với số
+                đã qua sơ tuyển lũy kế.</p>
+            </div>
+        </div>
+
+        @* ===== Biểu đồ theo tháng + Ngành nổi bật ===== *@
+        <div class="tk-row tk-row-3">
+            <div class="tk-card">
+                <h2>Hồ sơ nộp và lịch phỏng vấn theo tháng</h2>
+                <p class="tk-sub">Hồ sơ theo ngày nộp · Lịch theo ngày bắt đầu, gồm cả lịch Đã hủy</p>
+                <div class="tk-legend">
+                    <span><i style="background:var(--teal)"></i>Hồ sơ nộp · @tongHsThang</span>
+                    <span><i style="background:#1d405e"></i>Lịch phỏng vấn · @tongLichThang</span>
+                </div>
+                @if (!thangs.Any())
+                {
+                    <div class="tk-empty">Chưa có dữ liệu</div>
+                }
+                else
+                {
+                    <div class="tk-chart">
+                        <div class="tk-axis"><span>@maxCot</span><span>@(maxCot / 2)</span><span>0</span></div>
+                        <div class="tk-cols">
+                            @foreach (var th in thangs)
+                            {
+                                var h = Hs(th.Nam, th.Thang);
+                                var l = Lich(th.Nam, th.Thang);
+                                <div class="tk-col">
+                                    <div class="tk-pair">
+                                        <div style="height:@W(h * 100.0 / maxCot); background:var(--teal)"><span
+                                            style="color:var(--teal)">@h</span></div>
+                                            <div style="height:@W(l * 100.0 / maxCot); background:#1d405e"><span
+                                                style="color:#1d405e">@l</span></div>
+                                            </div>
+                                            <small>@th.Thang.ToString("00")/@th.Nam</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
                     </div>
-                    <div class="col-4">
-                        <div class="border rounded p-2 bg-light">
-                            <div class="small text-danger">Không trúng</div>
-                            <div class="fw-bold fs-5 text-danger">@Model.TyLeTrungTuyenTrenDaPV.SoHoSoKhongTrungTuyen</div>
+
+                    <div class="d-flex flex-column" style="gap:20px">
+                        @if (Model.NganhNhieuHoSoNhat != null)
+                        {
+                            var top = Model.NganhNhieuHoSoNhat;
+                            var phanTramTop = tongHoSo == 0 ? 0 : (int)top.SoLuongHoSo * 100.0 / tongHoSo;
+                            <div class="tk-hero">
+                                <div class="t">🏆 Ngành nhận nhiều hồ sơ nhất</div>
+                                <div class="name">@top.TenNganh</div>
+                                <div class="big"><b>@top.SoLuongHoSo hồ sơ</b><span>@Pct(phanTramTop) tổng hồ sơ</span></div>
+                                <div class="d">@top.TenKhoa · Chỉ tiêu @top.ChiTieu · Dẫn đầu trong @soNganh ngành tuyển sinh.</div>
+                            </div>
+                        }
+                        <div class="tk-info">
+                            <span>ⓘ</span>
+                            <div>
+                                <b>Mẫu số của các tỷ lệ</b>
+                                Sơ tuyển: số đạt sơ tuyển lũy kế / số hồ sơ ngành. Trúng tuyển: số trúng tuyển / số đã phỏng vấn lũy
+                                kế, gồm cả hồ sơ đã có kết quả.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    @* =========================================================================
-       7. Số hồ sơ nộp theo tháng & 8. Số lịch phỏng vấn theo tháng
-       ========================================================================= *@
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>7. Số hồ sơ nộp theo tháng</span>
-                <span class="badge bg-light text-dark border">GroupBy(NgayNop.Month)</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Thời gian</th>
-                            <th class="text-end">Số lượng hồ sơ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.HoSoTheoThang.Any())
-                        {
-                            <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                        }
-                        @foreach (var item in Model.HoSoTheoThang)
-                        {
-                            <tr>
-                                <td>Tháng @item.Thang / @item.Nam</td>
-                                <td class="text-end fw-bold text-primary">@item.SoLuong</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                @* ===== Hiệu quả theo ngành ===== *@
+                <div>
+                    <div class="tk-detail-head">
+                        <div>
+                            <h2>Hiệu quả tuyển sinh theo ngành</h2>
+                            <p>Đủ @soNganh ngành · Số hồ sơ, sơ tuyển lũy kế và tỷ lệ qua sơ tuyển</p>
+                        </div>
+                        <span class="tk-pill tk-pill-teal">Số liệu lũy kế trong kỳ</span>
+                    </div>
+                    <div class="tk-card tk-big">
+                        <div style="overflow-x:auto">
+                            <table class="tk-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ngành tuyển sinh</th>
+                                        <th class="n">Chỉ tiêu</th>
+                                        <th class="n">Số hồ sơ</th>
+                                        <th class="n">Đạt sơ tuyển<br />lũy kế</th>
+                                        <th style="min-width:240px">Tỷ lệ qua sơ tuyển</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var n in Model.HoSoTheoNganh)
+                                    {
+                                        soTuyen.TryGetValue(n.TenNganh, out var st);
+                                        int tong = st != null ? (int)st.TongHoSo : (int)n.SoLuongHoSo;
+                                        int dat = st != null ? (int)st.SoDatSoTuyen : 0;
+                                        double tl = st != null ? (double)st.TyLePhanTram : 0;
+                                        <tr>
+                                            <td style="font-weight:600">@n.TenNganh</td>
+                                            <td class="n" style="color:var(--muted)">@n.ChiTieu</td>
+                                            <td class="n" style="color:var(--muted)">@n.SoLuongHoSo</td>
+                                            <td class="n teal">@dat</td>
+                                            <td>
+                                                <div class="tk-mini">
+                                                    <div class="tr">
+                                                        <div class="fl" style="width:@W(tl)"></div>
+                                                    </div>
+                                                    <span class="teal" style="white-space:nowrap">@(tong == 0 ? "—" : $"{dat}/{tong} ·                 {Pct(tl)}")</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!Model.HoSoTheoNganh.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="tk-empty">Chưa có dữ liệu</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td>Tổng cộng</td>
+                                        <td class="n">@Model.HoSoTheoNganh.Sum(x => (int)x.ChiTieu)</td>
+                                        <td class="n">@Model.HoSoTheoNganh.Sum(x => (int)x.SoLuongHoSo)</td>
+                                        <td class="n">@tongDatSoTuyen</td>
+                                        <td>@(tongHoSo == 0 ? "—" : $"{tongDatSoTuyen}/{tongHoSo} · {Pct(tyLeSoTuyen)}")</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <p class="tk-note" style="margin-top:14px">Ngành chưa có hồ sơ vẫn được liệt kê để đủ phạm vi báo cáo; tỷ lệ
+                        hiển thị "—" khi chưa có mẫu số.</p>
+                    </div>
 
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>8. Số lịch phỏng vấn theo tháng</span>
-                <span class="badge bg-light text-dark border">GroupBy(BatDau.Month)</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Thời gian</th>
-                            <th class="text-end">Số lịch phỏng vấn</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.LichTheoThang.Any())
-                        {
-                            <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                        }
-                        @foreach (var item in Model.LichTheoThang)
-                        {
-                            <tr>
-                                <td>Tháng @item.Thang / @item.Nam</td>
-                                <td class="text-end fw-bold text-info">@item.SoLuong</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    @* =========================================================================
-       9. Tỷ lệ hồ sơ qua sơ tuyển theo từng ngành tuyển sinh
-       ========================================================================= *@
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between">
-                <span>9. Tỷ lệ hồ sơ qua sơ tuyển theo từng ngành tuyển sinh</span>
-                <span class="badge bg-light text-dark border">SoDatSoTuyen / TongHoSo (%)</span>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ngành tuyển sinh</th>
-                            <th class="text-center">Tổng hồ sơ nộp</th>
-                            <th class="text-center">Đạt sơ tuyển</th>
-                            <th>Tỷ lệ qua sơ tuyển</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.TyLeQuaSoTuyenTheoNganh)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@item.TenNganh</td>
-                                <td class="text-center">@item.TongHoSo</td>
-                                <td class="text-center text-success fw-bold">@item.SoDatSoTuyen</td>
-                                <td style="width: 35%;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 18px;">
-                                            <div class="progress-bar bg-success" style="width: @item.TyLePhanTram%;">@item.TyLePhanTram%</div>
-                                        </div>
-                                        <span class="small fw-bold">@item.TyLePhanTram%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
+                    <div class="tk-foot">
+                        <span>UNETI · Hệ thống quản lý tuyển sinh và hồ sơ xét tuyển</span>
+                        <span>Dữ liệu tại @DateTime.Now.ToString("dd/MM/yyyy, HH:mm") · GMT+7</span>
+                    </div>
+                </div>

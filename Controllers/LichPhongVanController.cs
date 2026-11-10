@@ -42,27 +42,88 @@ namespace QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Controllers
         // M5.1: DANH SÁCH LỊCH PHỎNG VẤN (Cán bộ / Admin)
         // =========================================================================
         // GET: LichPhongVan?trangThai=...
-        public async Task<IActionResult> Index(string? trangThai)
+        public async Task<IActionResult> Index(
+            string? trangThai,
+            string? tuKhoa,
+            string? sapXep,
+            string? tuNgay,
+            string? denNgay,
+            string? hinhThuc,
+            int trang = 1,
+            int pageSize = 10,
+            string? chon = null)
         {
-            // [Module 1]: Kiểm tra quyền hạn (nếu dự án bật session auth thủ công)
-            // if (!KiemTraQuyenCanBo()) return RedirectToAction("DangNhap", "TaiKhoan");
-
-            var query = _context.LichPhongVans
+            var baseQuery = _context.LichPhongVans
                 .Include(l => l.HoSoXetTuyen)
                     .ThenInclude(h => h!.ThiSinh)          // [Module 3]: tên thí sinh
                 .Include(l => l.HoSoXetTuyen)
                     .ThenInclude(h => h!.NganhTuyenSinh)   // [Module 2]: tên ngành
+                        .ThenInclude(n => n!.Khoa)         // [Module 1]: tên khoa
                 .Include(l => l.NguoiPhongVan)
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(trangThai))
+            int tongLich = await _context.LichPhongVans.CountAsync();
+
+            var query = baseQuery;
+
+            if (!string.IsNullOrWhiteSpace(trangThai))
             {
                 query = query.Where(l => l.TrangThai == trangThai);
             }
 
+            if (!string.IsNullOrWhiteSpace(hinhThuc))
+            {
+                query = query.Where(l => l.HinhThucPhongVan == hinhThuc);
+            }
+
+            if (!string.IsNullOrWhiteSpace(tuNgay) && DateTime.TryParse(tuNgay, out var d1))
+            {
+                query = query.Where(l => l.ThoiGianBatDau >= d1);
+            }
+
+            if (!string.IsNullOrWhiteSpace(denNgay) && DateTime.TryParse(denNgay, out var d2))
+            {
+                var d2End = d2.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(l => l.ThoiGianBatDau <= d2End);
+            }
+
+            if (!string.IsNullOrWhiteSpace(tuKhoa))
+            {
+                var tk = tuKhoa.Trim().ToLower();
+                query = query.Where(l =>
+                    (l.HoSoXetTuyen != null && l.HoSoXetTuyen.ThiSinh != null && l.HoSoXetTuyen.ThiSinh.HoTen.ToLower().Contains(tk)) ||
+                    (l.NguoiPhongVan != null && l.NguoiPhongVan.HoTen.ToLower().Contains(tk)) ||
+                    l.MaHoSo.ToString().Contains(tk) ||
+                    l.MaLichPhongVan.ToString().Contains(tk));
+            }
+
+            query = sapXep switch
+            {
+                "batdau_desc" => query.OrderByDescending(l => l.ThoiGianBatDau),
+                "thisinh_asc" => query.OrderBy(l => l.HoSoXetTuyen != null && l.HoSoXetTuyen.ThiSinh != null ? l.HoSoXetTuyen.ThiSinh.HoTen : ""),
+                _ => query.OrderBy(l => l.ThoiGianBatDau)
+            };
+
+            int tongBanGhi = await query.CountAsync();
+            if (trang < 1) trang = 1;
+            int tongTrang = (int)Math.Ceiling((double)tongBanGhi / pageSize);
+            if (tongTrang < 1) tongTrang = 1;
+            if (trang > tongTrang) trang = tongTrang;
+
+            var danhSach = await query
+                .Skip((trang - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             ViewBag.TrangThai = trangThai;
-            var danhSach = await query.OrderByDescending(l => l.ThoiGianBatDau).ToListAsync();
+            ViewBag.Trang = trang;
+            ViewBag.TongTrang = tongTrang;
+            ViewBag.TongBanGhi = tongBanGhi;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TongLich = tongLich;
+            ViewBag.Chon = chon;
+
             return View(danhSach);
         }
 
