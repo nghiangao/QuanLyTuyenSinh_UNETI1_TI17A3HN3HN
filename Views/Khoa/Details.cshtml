@@ -4,32 +4,56 @@
     ViewData["Title"] = "Chi tiết khoa";
 }
 
-<h1 class="mb-3">Chi tiết khoa</h1>
-<dl class="row">
-    <dt class="col-sm-3">Tên khoa</dt>
-    <dd class="col-sm-9">@Model.TenKhoa</dd>
-    <dt class="col-sm-3">Email liên hệ</dt>
-    <dd class="col-sm-9">@(Model.EmailLienHe ?? "—")</dd>
-    <dt class="col-sm-3">Mô tả</dt>
-    <dd class="col-sm-9">@(Model.MoTa ?? "—")</dd>
-    <dt class="col-sm-3">Trạng thái</dt>
-    <dd class="col-sm-9">@(Model.TrangThai ? "Hoạt động" : "Ngừng hoạt động")</dd>
-    <dt class="col-sm-3">Ngành tuyển sinh</dt>
-    <dd class="col-sm-9">
-        @if (Model.NganhTuyenSinhs.Any())
-        {
-            <ul>
-                @foreach (var nganh in Model.NganhTuyenSinhs)
-                {
-                    <li>@nganh.TenNganh</li>
-                }
-            </ul>
-        }
-        else
-        {
-            <span>Chưa có ngành tuyển sinh.</span>
-        }
-    </dd>
-</dl>
-<a asp-action="Edit" asp-route-id="@Model.MaKhoa" class="btn btn-primary">Sửa</a>
-<a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+<div class="container py-3" style="max-width: 750px">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary mb-0">Chi tiết khoa</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">← Quay lại danh sách</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-primary text-white fw-semibold">
+            Thông tin khoa
+        </div>
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 text-muted">Tên khoa</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.TenKhoa</dd>
+                <dt class="col-sm-3 text-muted">Email liên hệ</dt>
+                <dd class="col-sm-9">@(Model.EmailLienHe ?? "—")</dd>
+                <dt class="col-sm-3 text-muted">Mô tả</dt>
+                <dd class="col-sm-9">@(Model.MoTa ?? "—")</dd>
+                <dt class="col-sm-3 text-muted">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    @if (Model.TrangThai)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Ngừng hoạt động</span>
+                    }
+                </dd>
+                <dt class="col-sm-3 text-muted">Ngành tuyển sinh</dt>
+                <dd class="col-sm-9">
+                    @if (Model.NganhTuyenSinhs.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var nganh in Model.NganhTuyenSinhs)
+                            {
+                                <li>• @nganh.TenNganh</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Chưa có ngành tuyển sinh.</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.MaKhoa" class="btn btn-primary">Sửa khoa</a>
+            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+    </div>
+</div>

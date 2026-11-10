@@ -4,18 +4,42 @@
     ViewData["Title"] = "Chi tiết tài khoản";
 }
 
-<h1 class="mb-3">Chi tiết tài khoản</h1>
-<dl class="row">
-    <dt class="col-sm-3">Tên đăng nhập</dt>
-    <dd class="col-sm-9">@Model.TenDangNhap</dd>
-    <dt class="col-sm-3">Họ tên</dt>
-    <dd class="col-sm-9">@Model.HoTen</dd>
-    <dt class="col-sm-3">Email</dt>
-    <dd class="col-sm-9">@Model.Email</dd>
-    <dt class="col-sm-3">Vai trò</dt>
-    <dd class="col-sm-9">@Model.VaiTro</dd>
-    <dt class="col-sm-3">Trạng thái</dt>
-    <dd class="col-sm-9">@(Model.TrangThai ? "Hoạt động" : "Đã khóa")</dd>
-</dl>
-<a asp-action="Edit" asp-route-id="@Model.MaTaiKhoan" class="btn btn-primary">Sửa</a>
-<a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+<div class="container py-3" style="max-width: 750px">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary mb-0">Chi tiết tài khoản</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">← Quay lại danh sách</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-primary text-white fw-semibold">
+            Thông tin tài khoản
+        </div>
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 text-muted">Tên đăng nhập</dt>
+                <dd class="col-sm-9 fw-semibold">@Model.TenDangNhap</dd>
+                <dt class="col-sm-3 text-muted">Họ tên</dt>
+                <dd class="col-sm-9">@Model.HoTen</dd>
+                <dt class="col-sm-3 text-muted">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+                <dt class="col-sm-3 text-muted">Vai trò</dt>
+                <dd class="col-sm-9"><span class="badge bg-info text-dark">@Model.VaiTro</span></dd>
+                <dt class="col-sm-3 text-muted">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    @if (Model.TrangThai)
+                    {
+                        <span class="badge bg-success">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Đã khóa</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.MaTaiKhoan" class="btn btn-primary">Sửa tài khoản</a>
+            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+    </div>
+</div>

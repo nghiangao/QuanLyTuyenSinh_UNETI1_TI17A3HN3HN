@@ -7,37 +7,145 @@
 
 @{
     ViewData["Title"] = "Đăng nhập";
+    bool daDangNhap = User.Identity?.IsAuthenticated == true;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <h1 class="mb-4">Đã đăng nhập</h1>
-            <p>Xin chào, @User.Identity.Name.</p>
-            <form asp-action="DangXuat" method="post">
-                <button type="submit" class="btn btn-outline-primary">Đăng xuất</button>
-            </form>
-        }
-        else
-        {
-            <h1 class="mb-4">Đăng nhập</h1>
-            <form asp-action="DangNhap" method="post">
-                <input asp-for="ReturnUrl" type="hidden" />
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <div class="mb-3">
-                    <label asp-for="TenDangNhap" class="form-label"></label>
-                    <input asp-for="TenDangNhap" class="form-control" autocomplete="username" />
-                    <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+<style>
+    .dn-page {
+        --dn-bg: #F3F6FA;
+        --dn-surface: #FFFFFF;
+        --dn-border: #DEE5EE;
+        --dn-primary: #2057A5;
+        --dn-primary-dark: #133767;
+        --dn-text: #182B46;
+        --dn-muted: #63738A;
+        --dn-info: #EAF1FC;
+        font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--dn-text);
+        padding: 8px 0 24px;
+    }
+
+    .dn-breadcrumb { font-size: 12px; font-weight: 600; color: var(--dn-primary); margin-bottom: 24px; }
+    .dn-title { font-size: 28px; font-weight: 700; line-height: 1.2; margin: 0 0 8px; color: var(--dn-text); }
+    .dn-subtitle { font-size: 14px; color: var(--dn-muted); margin: 0 0 24px; }
+
+    .dn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+    /* Cột trái: khối hướng dẫn */
+    .dn-guide { background: var(--dn-primary-dark); border-radius: 10px; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+    .dn-guide-card { background: var(--dn-surface); border: 1px solid var(--dn-border); border-radius: 10px; padding: 24px; }
+    .dn-guide-card h2 { font-size: 18px; font-weight: 600; margin: 0 0 16px; color: var(--dn-text); }
+    .dn-guide-card p { font-size: 14px; line-height: 1.5; margin: 0 0 16px; color: var(--dn-text); }
+    .dn-guide-card p:last-child { margin-bottom: 0; }
+    .dn-guide-card p.dn-muted { color: var(--dn-muted); }
+
+    /* Cột phải: biểu mẫu */
+    .dn-card { background: var(--dn-surface); border: 1px solid var(--dn-border); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .dn-card h2 { font-size: 18px; font-weight: 600; margin: 0; color: var(--dn-text); }
+    .dn-card .dn-desc { font-size: 12px; color: var(--dn-muted); margin: 0; }
+
+    .dn-field { display: flex; flex-direction: column; gap: 7px; }
+    .dn-label { font-size: 13px; font-weight: 600; color: var(--dn-text); margin: 0; }
+    .dn-input {
+        font-size: 14px; padding: 12px; border: 1px solid var(--dn-border); border-radius: 6px;
+        color: var(--dn-text); background: var(--dn-surface);
+    }
+    .dn-input:focus { border-color: var(--dn-primary); box-shadow: 0 0 0 3px rgba(32, 87, 165, .18); outline: none; }
+    .dn-hint { font-size: 12px; color: var(--dn-muted); margin: 0; }
+
+    .dn-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .dn-btn {
+        font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 6px; line-height: 1.2;
+        border: 1px solid var(--dn-border); background: var(--dn-surface); color: var(--dn-text);
+        text-decoration: none; cursor: pointer; display: inline-block;
+    }
+    .dn-btn:hover { background: var(--dn-bg); color: var(--dn-text); }
+    .dn-btn-primary { background: var(--dn-primary); border-color: var(--dn-primary); color: #fff; }
+    .dn-btn-primary:hover { background: var(--dn-primary-dark); border-color: var(--dn-primary-dark); color: #fff; }
+    .dn-btn:focus-visible { outline: 2px solid var(--dn-primary); outline-offset: 2px; }
+
+    .dn-notice { background: var(--dn-info); border: 1px solid var(--dn-info); border-radius: 6px; padding: 16px; }
+    .dn-notice strong { display: block; font-size: 14px; font-weight: 600; color: var(--dn-primary); margin-bottom: 6px; }
+    .dn-notice span { font-size: 13px; line-height: 1.5; color: var(--dn-text); }
+
+    @@media (max-width: 991.98px) {
+        .dn-grid { grid-template-columns: 1fr; }
+        .dn-card, .dn-guide { order: initial; }
+        .dn-card { order: -1; }
+        .dn-guide { padding: 20px; }
+    }
+</style>
+
+<div class="dn-page">
+    <div class="dn-breadcrumb">02 / CỔNG CÔNG KHAI / Truy cập hệ thống</div>
+    <h1 class="dn-title">Đăng nhập hệ thống</h1>
+    <p class="dn-subtitle">Một tài khoản, đúng không gian làm việc được phân quyền.</p>
+
+    <div class="dn-grid">
+        <aside class="dn-guide">
+            <section class="dn-guide-card">
+                <h2>Chào mừng đến cổng tuyển sinh</h2>
+                <p>Thí sinh: cập nhật thông tin, nộp hồ sơ và theo dõi kết quả.</p>
+                <p>Cán bộ tuyển sinh: sơ tuyển, quản lý phỏng vấn và xác nhận kết quả.</p>
+                <p>Admin: quản lý tài khoản, khoa và toàn bộ nghiệp vụ.</p>
+            </section>
+            <section class="dn-guide-card">
+                <h2>Tài khoản được nhà trường cấp</h2>
+                <p class="dn-muted">Quyền được xác định từ tài khoản, không chọn vai trò tại trang đăng nhập. Cần hỗ trợ? tuyensinh@@example.edu.vn</p>
+            </section>
+        </aside>
+
+        <section class="dn-card">
+            @if (daDangNhap)
+            {
+                <h2>Đã đăng nhập</h2>
+                <p class="dn-desc">Xin chào, <strong>@User.Identity!.Name</strong>.</p>
+                <form asp-action="DangXuat" method="post">
+                    <div class="dn-actions">
+                        <button type="submit" class="dn-btn dn-btn-primary">Đăng xuất</button>
+                        <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="dn-btn">Về trang tuyển sinh</a>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div>
+                    <h2>Thông tin đăng nhập</h2>
+                    <p class="dn-desc mt-1">Nhập tên đăng nhập và mật khẩu đã được cấp.</p>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="MatKhau" class="form-label"></label>
-                    <input asp-for="MatKhau" class="form-control" autocomplete="current-password" />
-                    <span asp-validation-for="MatKhau" class="text-danger"></span>
+
+                <form asp-action="DangNhap" method="post" class="d-flex flex-column gap-3">
+                    <input asp-for="ReturnUrl" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="dn-field">
+                        <label asp-for="TenDangNhap" class="dn-label"></label>
+                        <input asp-for="TenDangNhap" class="form-control dn-input" autocomplete="username" maxlength="50" />
+                        <span asp-validation-for="TenDangNhap" class="text-danger small"></span>
+                        <p class="dn-hint">Tối đa 50 ký tự.</p>
+                    </div>
+
+                    <div class="dn-field">
+                        <label asp-for="MatKhau" class="dn-label"></label>
+                        <input asp-for="MatKhau" class="form-control dn-input" autocomplete="current-password" />
+                        <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                        <p class="dn-hint">Mật khẩu được che; không hiển thị trong trang chi tiết.</p>
+                    </div>
+
+                    <div class="dn-actions">
+                        <button type="submit" class="dn-btn dn-btn-primary">Đăng nhập</button>
+                        <a asp-controller="NganhTuyenSinh" asp-action="CongKhai" class="dn-btn">Về trang tuyển sinh</a>
+                    </div>
+                </form>
+
+                <div class="dn-notice">
+                    <strong>Bảo vệ tài khoản</strong>
+                    <span>Không chia sẻ mật khẩu. Đăng xuất sau khi sử dụng trên máy tính chung.</span>
                 </div>
-                <button type="submit" class="btn btn-primary">Đăng nhập</button>
-            </form>
-        }
+
+                <p class="dn-desc">Bản demo dùng tài khoản mẫu được cấp sẵn. Không có chức năng tự đăng ký.</p>
+            }
+        </section>
     </div>
 </div>
 

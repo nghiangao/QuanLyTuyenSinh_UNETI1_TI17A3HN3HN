@@ -9,17 +9,33 @@
     ViewData["Title"] = "Xóa ngành tuyển sinh";
 }
 
-<h1 class="h3 mb-3">Xóa ngành tuyển sinh</h1>
-<div class="alert alert-warning">Thao tác này không thể hoàn tác. Ngành đã có hồ sơ sẽ được hệ thống từ chối xóa để bảo toàn lịch sử.</div>
-<dl class="row">
-    <dt class="col-sm-3">Tên ngành</dt>
-    <dd class="col-sm-9">@Model.TenNganh</dd>
-    <dt class="col-sm-3">Khoa</dt>
-    <dd class="col-sm-9">@Model.Khoa?.TenKhoa</dd>
-    <dt class="col-sm-3">Trạng thái</dt>
-    <dd class="col-sm-9">@Model.TrangThai</dd>
-</dl>
-<form asp-action="Delete" asp-route-id="@Model.MaNganh" method="post">
-    <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
-    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
-</form>
+<div class="container py-3" style="max-width: 750px">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-danger mb-0">Xóa ngành tuyển sinh</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">← Quay lại</a>
+    </div>
+
+    <div class="alert alert-warning shadow-sm">
+        Thao tác này không thể hoàn tác. Ngành đã có hồ sơ sẽ được hệ thống từ chối xóa để bảo toàn lịch sử dữ liệu tuyển sinh.
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 text-muted">Tên ngành</dt>
+                <dd class="col-sm-9 fw-bold">@Model.TenNganh</dd>
+                <dt class="col-sm-3 text-muted">Khoa</dt>
+                <dd class="col-sm-9">@Model.Khoa?.TenKhoa</dd>
+                <dt class="col-sm-3 text-muted">Trạng thái</dt>
+                <dd class="col-sm-9"><span class="badge bg-secondary">@Model.TrangThai</span></dd>
+            </dl>
+        </div>
+        <div class="card-footer bg-white d-flex gap-2">
+            <form asp-action="Delete" asp-route-id="@Model.MaNganh" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">Xác nhận xóa ngành</button>
+            </form>
+            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+    </div>
+</div>
