@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Từ chối truy cập (403)";
+    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Chưa đăng nhập";
+}
+
+<div class="container py-5 text-center" style="max-width: 650px">
+    <div class="card shadow-sm border-0 p-5">
+        <div class="display-1 text-danger mb-3">⛔</div>
+        <h1 class="h3 fw-bold text-danger mb-2">403 - Quyền truy cập bị từ chối</h1>
+        <p class="text-muted mb-4">
+            Tài khoản hiện tại của bạn đang có vai trò <strong>@role</strong>. Đường dẫn bạn vừa truy cập thuộc khu vực quản trị/nghiệp vụ dành riêng cho Cán bộ tuyển sinh hoặc Quản trị viên (Admin).
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary px-4">
+                ← Về trang chủ
+            </a>
+            @if (User.IsInRole(QuanLyTuyenSinh_UNETI1_TI17A3HN3HN.Models.VaiTro.ThiSinh))
+            {
+                <a asp-controller="HoSoThiSinh" asp-action="TheoDoi" class="btn btn-outline-primary px-4">
+                    Xem hồ sơ của tôi
+                </a>
+            }
+        </div>
+    </div>
+</div>

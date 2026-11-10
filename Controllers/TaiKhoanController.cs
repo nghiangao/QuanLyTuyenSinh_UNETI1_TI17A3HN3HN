@@ -99,6 +99,13 @@ public class TaiKhoanController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
     [Authorize(Roles = VaiTro.Admin)]
     public async Task<IActionResult> Index(string? search, string? vaiTro, bool? trangThai)
     {

@@ -15,13 +15,9 @@ builder.Services
     .AddCookie(options =>
     {
         options.LoginPath = "/TaiKhoan/DangNhap";
+        options.AccessDeniedPath = "/TaiKhoan/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
-        };
     });
 builder.Services.AddAuthorization();
 
